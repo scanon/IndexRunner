@@ -1,0 +1,25 @@
+{
+    "properties": {
+        "extpub": {
+            "type": "integer"
+        },
+        "groups": {
+            "type": "integer"
+        },
+        "islast": {
+            "type": "boolean"
+        },
+        "lastin": {
+            "type": "integer"
+        },
+        "pguid": {
+            "type": "keyword"
+        },
+        "prefix": {
+            "type": "keyword"
+        },
+        "version": {
+            "type": "integer"
+        }
+    }
+}

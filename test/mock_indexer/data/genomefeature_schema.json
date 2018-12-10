@@ -1,0 +1,46 @@
+{
+    "schema": {
+        "aliases": {
+            "type": "keyword"
+        },
+        "assembly_guid": {
+            "type": "keyword"
+        },
+        "contig_guid": {
+            "type": "keyword"
+        },
+        "contig_id": {
+            "type": "text"
+        },
+        "feature_type": {
+            "type": "keyword"
+        },
+        "functions": {
+            "type": "text"
+        },
+        "genome_domain": {
+            "type": "keyword"
+        },
+        "genome_scientific_name": {
+            "type": "text"
+        },
+        "genome_taxonomy": {
+            "type": "text"
+        },
+        "id": {
+            "type": "keyword"
+        },
+        "protein_translation": {
+            "type": "keyword"
+        },
+        "start": {
+            "type": "integer"
+        },
+        "stop": {
+            "type": "integer"
+        },
+        "strand": {
+            "type": "keyword"
+        }
+    }
+}

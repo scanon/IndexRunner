@@ -1,0 +1,5 @@
+test_local
+sdk.cfg
+deploy-local.cfg
+*.pyc
+_pycache__

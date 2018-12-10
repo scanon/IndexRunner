@@ -1,0 +1,41 @@
+{
+    "schema": {
+        "assembly_guid": {
+            "type": "keyword"
+        },
+        "cds_count": {
+            "type": "integer"
+        },
+        "contig_count": {
+            "type": "integer"
+        },
+        "domain": {
+            "type": "keyword"
+        },
+        "feature_count": {
+            "type": "integer"
+        },
+        "id": {
+            "type": "keyword"
+        },
+        "mrna_count": {
+            "type": "integer"
+        },
+        "scientific_name": {
+            "type": "text"
+        },
+        "scientific_name_keyword": {
+            "type": "keyword"
+        },
+        "source": {
+            "type": "keyword"
+        },
+        "source_id": {
+            "type": "keyword"
+        },
+        "taxonomy": {
+            "type": "text"
+        }
+    }
+}
+

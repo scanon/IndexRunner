@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #BEGIN_HEADER
 import os
-from Utils.EventUtils import EventHandler
+from IndexRunner.EventUtils import EventHandler
 #END_HEADER
 
 

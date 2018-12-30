@@ -1,0 +1,23 @@
+[IndexRunner]
+kbase-endpoint = {{ default .Env.kbase_endpoint "" }}
+workspace-url = {{ default .Env.workspace_url "" }}
+shock-url = {{ default .Env.shock_url "" }}
+handle-service-url = {{ default .Env.handle_url "" }}
+catalog-service-url = {{ default .Env.catalog_service_url "" }}
+srv-wiz-url = {{ default .Env.srv_wiz_url "" }}
+auth-service-url = {{ default .Env.auth_service_url "" }}
+auth-service-url-allow-insecure = {{ default .Env.auth_service_url_allow_insecure "false" }}
+workspace-admin-token = {{ default .Env.workspace_admin_token "" }}
+
+elastic-host = {{ default .Env.elastic_host "elasticsearch:9200" }}
+elastic-user = {{ default .Env.elastic_user "" }}
+elastic-password = {{ default .Env.elastic_password "" }}
+elastic-namespace={{ default .Env.elastic_namespace "kbase.1" }}
+mapping-file={{ default .Env.mapping_file "./mapping.yaml" }}
+
+kafka-server =  {{ default .Env.kafka_server "kafka" }}
+kafka-topic = {{ default .Env.kafka_topic "wsevents" }}
+kafka-clientgroup = {{ default .Env.kafka_clientgroup "index_runner" }}
+
+scratch = {{ default .Env.scratch "/scratch" }}
+elastic-base = ciraw

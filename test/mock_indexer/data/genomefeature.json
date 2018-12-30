@@ -1,4 +1,5 @@
 {
+    "result": [{
     "features": [
         {
             "aliases": [
@@ -27,7 +28,7 @@
                 "product:6-phosphofructokinase I",
                 "Energy metabolism, carbon: Glycolysis"
             ],
-            "guid": "WS:29934/2/1:Feature/b3916",
+            "guid": "29934/2/1:Feature/b3916",
             "id": [
                 "b3916"
             ],
@@ -66,7 +67,7 @@
                 "leader",
                 "Degradation of small molecules: Amino acids"
             ],
-            "guid": "WS:29934/2/1:Feature/b3707",
+            "guid": "29934/2/1:Feature/b3707",
             "id": [
                 "b3707"
             ],
@@ -107,7 +108,7 @@
                 "product:citrate lyase, acyl carrier (gamma) subunit",
                 "Central intermediary metabolism: Pool, multipurpose conversions"
             ],
-            "guid": "WS:29934/2/1:Feature/b0617",
+            "guid": "29934/2/1:Feature/b0617",
             "id": [
                 "b0617"
             ],
@@ -144,7 +145,7 @@
             "functions": [
                 "product:U32 peptidase family protein"
             ],
-            "guid": "WS:29934/2/1:Feature/b3159",
+            "guid": "29934/2/1:Feature/b3159",
             "id": [
                 "b3159"
             ],
@@ -183,7 +184,7 @@
                 "product:response regulator activating yhjX; pyruvate-responsive YpdAB two-component system",
                 "putative regulator"
             ],
-            "guid": "WS:29934/2/1:Feature/b2381",
+            "guid": "29934/2/1:Feature/b2381",
             "id": [
                 "b2381"
             ],
@@ -224,7 +225,7 @@
                 "Central intermediary metabolism: Non-oxidative branch, pentose pathway",
                 "product:ribose 5-phosphate isomerase, constitutive"
             ],
-            "guid": "WS:29934/2/1:Feature/b2914",
+            "guid": "29934/2/1:Feature/b2914",
             "id": [
                 "b2914"
             ],
@@ -263,7 +264,7 @@
                 "Not classified",
                 "putative membrane"
             ],
-            "guid": "WS:29934/2/1:Feature/b0813",
+            "guid": "29934/2/1:Feature/b0813",
             "id": [
                 "b0813"
             ],
@@ -304,7 +305,7 @@
                 "Murein sacculus, peptidoglycan",
                 "product:murein DD-endopeptidase"
             ],
-            "guid": "WS:29934/2/1:Feature/b2328",
+            "guid": "29934/2/1:Feature/b2328",
             "id": [
                 "b2328"
             ],
@@ -343,7 +344,7 @@
                 "product:hca operon transcriptional regulator",
                 "Degradation of small molecules: Carbon compounds"
             ],
-            "guid": "WS:29934/2/1:Feature/b2537",
+            "guid": "29934/2/1:Feature/b2537",
             "id": [
                 "b2537"
             ],
@@ -369,4 +370,5 @@
             "cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia"
         ]
     }
+}]
 }

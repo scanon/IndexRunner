@@ -1,0 +1,8 @@
+confluent-kafka
+coverage
+docker
+elasticsearch==6.3.1
+nose
+PyYAML
+requests
+

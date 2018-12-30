@@ -1,0 +1,108 @@
+{
+    "data": [
+        {
+            "copy_source_inaccessible": 0,
+            "created": "2018-05-26T19:36:55+0000",
+            "creator": "qzhang",
+            "epoch": 1527363415499,
+            "extracted_ids": {
+                "handle": [
+                    "KBH_274452"
+                ]
+            },
+            "info": [
+                2,
+                "GCF_000518705.1",
+                "KBaseGenomes.Genome-14.1",
+                "2018-05-26T19:36:55+0000",
+                12,
+                "qzhang",
+                15792,
+                "ReferenceDataManager",
+                "4eba779dc80740563ceb0b5b66b73a41",
+                14751924,
+                {
+                    "Domain": "Bacteria",
+                    "GC content": "0.45345",
+                    "Genetic code": "11",
+                    "MD5": "6aef262a8bc92342ea7ed2f95109891a",
+                    "Name": "Shewanella colwelliana ATCC 39565",
+                    "Number contigs": "58",
+                    "Number of CDS": "3991",
+                    "Number of Protein Encoding Genes": "3991",
+                    "Size": "4575622",
+                    "Source": "RefSeq",
+                    "Source ID": "NZ_KI912479",
+                    "Taxonomy": "cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Alteromonadales; Shewanellaceae; Shewanella; Shewanella colwelliana",
+                    "accession": "GCF_000518705.1",
+                    "assembly_level": "Scaffold",
+                    "refid": "GCF_000518705",
+                    "refname": "GCF_000518705.1",
+                    "url": "ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/518/705/GCF_000518705.1_ASM51870v1/GCF_000518705.1_ASM51870v1_genomic.gbff.gz",
+                    "version": "1"
+                }
+            ],
+            "orig_wsid": 15792,
+            "path": [
+                "15792/2/12"
+            ],
+            "provenance": [
+                {
+                    "custom": {},
+                    "description": "KBase SDK method run via the KBase Execution Engine",
+                    "epoch": 1527358736000,
+                    "external_data": [],
+                    "input_ws_objects": [],
+                    "method": "load_refgenomes",
+                    "method_params": [
+                        {
+                            "cut_off_date": "2018-05-19",
+                            "ensembl": 0,
+                            "genome_type": "KBaseGenomes.Genome-14.1",
+                            "index_in_solr": 1,
+                            "kb_env": "ci",
+                            "phytozome": 0,
+                            "refseq": 1,
+                            "start_offset": 0,
+                            "workspace_name": "qzhang:1488428588694"
+                        }
+                    ],
+                    "resolved_ws_objects": [],
+                    "service": "ReferenceDataManager",
+                    "service_ver": "1.0.0",
+                    "subactions": [
+                        {
+                            "code_url": "https://github.com/kbaseapps/ReferenceDataManager",
+                            "commit": "25975c69c9dea8e1b7bd8e6989ba4f8c8de00711",
+                            "name": "ReferenceDataManager",
+                            "ver": "1.0.0"
+                        },
+                        {
+                            "code_url": "https://github.com/kbaseapps/GenomeFileUtil",
+                            "commit": "02c587de19839c8962d43b81e299bd9f712604bf",
+                            "name": "GenomeFileUtil",
+                            "ver": "0.8.6-dev"
+                        },
+                        {
+                            "code_url": "https://github.com/kbaseapps/DataFileUtil",
+                            "commit": "c4733f9c81bcc8228c63ceeb2c0540df9e61153e",
+                            "name": "DataFileUtil",
+                            "ver": "0.0.21-release"
+                        },
+                        {
+                            "code_url": "https://github.com/kbaseapps/AssemblyUtil",
+                            "commit": "2b9b53d852190c94996e620d4754ca6aa98c0cb4",
+                            "name": "AssemblyUtil",
+                            "ver": "1.0.6-release"
+                        }
+                    ],
+                    "time": "2018-05-26T18:18:56+0000"
+                }
+            ],
+            "refs": [
+                "1779/504891/3",
+                "15792/1/8"
+            ]
+        }
+    ]
+}

@@ -3,14 +3,14 @@ import unittest
 import os  # noqa: F401
 import json  # noqa: F401
 import time
-from Utils.WSAdminUtils import WorkspaceAdminUtil
+from IndexRunner.WSAdminUtils import WorkspaceAdminUtil
 
 from os import environ
 from configparser import ConfigParser  # py3
 
 from pprint import pprint  # noqa: F401
 
-from Workspace.WorkspaceClient import Workspace as workspaceService
+from kbase.Workspace.WorkspaceClient import Workspace as workspaceService
 
 
 class WSAdminTester(unittest.TestCase):

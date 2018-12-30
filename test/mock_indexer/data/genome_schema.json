@@ -1,4 +1,5 @@
 {
+    "result": [{
     "schema": {
         "assembly_guid": {
             "type": "keyword"
@@ -37,5 +38,6 @@
             "type": "text"
         }
     }
+   }]
 }
 

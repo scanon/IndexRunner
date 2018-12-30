@@ -1,4 +1,4 @@
-from Workspace.WorkspaceClient import Workspace
+from kbase.Workspace.WorkspaceClient import Workspace
 
 # We have to use the administer method for all accesses
 
@@ -7,7 +7,7 @@ class WorkspaceAdminUtil:
 
     def __init__(self, config):
         wsurl = config.get('workspace-url')
-        self.atoken = config.get('ws-admin-token')
+        self.atoken = config.get('workspace-admin-token')
         self.noadmin = False
         if self.atoken is None or self.atoken == '':
             self.noadmin = True
@@ -29,6 +29,14 @@ class WorkspaceAdminUtil:
         if self.noadmin:
             return self.ws.get_objects2(params)
         return self.ws.administer({'command': 'getObjects', 'params': params})
+
+    def get_object_info3(self, params):
+        """
+        Provide something that acts like a standard getObjects
+        """
+        if self.noadmin:
+            return self.ws.get_object_info3(params)
+        return self.ws.administer({'command': 'getObjectInfo', 'params': params})
 
     def get_workspace_info(self, params):
         """

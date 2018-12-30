@@ -1,9 +1,10 @@
-from Catalog.CatalogClient import Catalog
+from kbase.Catalog.CatalogClient import Catalog
 import docker
 from configparser import ConfigParser
 import os
 import uuid
 import json
+import logging
 
 
 class ServerError(Exception):
@@ -29,6 +30,10 @@ class MethodRunner:
         self.config = config
         self.scratch = config.get('scratch', '/kb/module/work/tmp')
         self.token = token
+        if 'workspace-admin-token' in self.config:
+            self.token = self.config['workspace-admin-token']
+        self.dirs = []
+        self.log = logging.getLogger('indexrunner')
 
     def _create_config_properties(self):
         config = ConfigParser()
@@ -39,9 +44,12 @@ class MethodRunner:
           'handle_url': self.config.get('kbase-endpoint'),
           'auth_service_url': self.config.get('auth-service-url'),
           'auth_service_url_allow_insecure': self.config.get('auth-service-url-allow-insecure'),
-          'ws_admin_token': self.config.get('ws-admin-token'),
           'scratch': self.config.get('scratch')
            }
+        #  'workspace_admin_token': self.config.get('workspace-admin-token'),
+
+        if 'workspace-admin-token' in self.config:
+            config['global']['workspace_admin_token'] = self.config.get('workspace-admin-token')
         return config
 
     def run(self, module, method, params, version=None):
@@ -62,18 +70,18 @@ class MethodRunner:
         pulled = False
         for im in list:
             if image in im.tags:
-                print("Already pulled")
                 id = im.id
                 pulled = True
         if not pulled:
-            print("Pulling %s" % (image))
+            self.log.info("Pulling %s" % (image))
             id = self.docker.images.pull(image).id
 
         # Prepare the run space
         job_id = str(uuid.uuid1())
-        print("image id=%s job_id=%s" % (id, job_id))
+        self.log.info("image id=%s job_id=%s" % (id, job_id))
 
         job_dir = self.scratch + '/' + job_id
+        self.dirs.append(job_dir)
         os.makedirs(job_dir)
         # Create config.properties
         config = self._create_config_properties()
@@ -108,14 +116,9 @@ class MethodRunner:
         env = {
                 'SDK_CALLBACK_URL': 'not_supported_yet'
         }
-        try:
-            self.docker.containers.run(image, 'async',
-                                       environment=env,
-                                       volumes=vols)
-        except docker.errors.ContainerError as e:
-            print(e.stderr)
-        # print(stderr)
-        # print(stdout)
+        self.docker.containers.run(image, 'async',
+                                   environment=env,
+                                   volumes=vols)
         output = None
         out_file = job_dir + '/output.json'
         if os.path.exists(out_file):
@@ -128,4 +131,14 @@ class MethodRunner:
         if 'error' in output:
             raise ServerError(**output['error'])
 
-        return output
+        return output['result']
+
+    def cleanup(self):
+        for d in self.dirs:
+            for f in ['token', 'config.properties', 'input.json', 'output.json']:
+                os.remove(d+'/'+f)
+            try:
+                os.removedirs(d)
+            except:
+                continue
+        self.dirs = []

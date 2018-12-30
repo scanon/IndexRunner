@@ -3,3 +3,5 @@ sdk.cfg
 deploy-local.cfg
 *.pyc
 _pycache__
+error.log
+test_coverage/

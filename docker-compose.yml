@@ -1,0 +1,75 @@
+version: '2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.9
+    volumes:
+      - es5test:/usr/share/elasticsearch/data/
+    environment:
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ports:
+      - "9201:9200"
+    mem_limit: 570000000
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper:12888:13888
+
+  kafka:
+    image: confluentinc/cp-kafka:5.0.0
+    hostname: kafka
+    #ports:
+    #  - "9092:9092"
+    depends_on:
+      - zookeeper
+    links:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms512m"
+    mem_limit: 550000000
+
+  indexrunner:
+    image: kbase/indexrunner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /Users/canon/Dev/IndexRunner/test_local/scratch:/Users/canon/Dev/IndexRunner/test_local/scratch
+    tty: true
+    links:
+      - kafka
+    env_file:
+     - ./config-test.ini
+    environment:
+      workspace_admin_token: ${CI_ADMIN_TOK}
+      PYTHONUNBUFFERED: 1
+
+  admin:
+    image: kbase/indexrunner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /Users/canon/Dev/IndexRunner/test_local/work:/app/work
+    links:
+      - kafka
+    env_file:
+     - ./config-test.ini
+    environment:
+      workspace_admin_token: ${CI_ADMIN_TOK}
+    tty: True
+    entrypoint: /bin/bash
+
+volumes:
+  es5test:
+
+
+volumes:
+  es5test:

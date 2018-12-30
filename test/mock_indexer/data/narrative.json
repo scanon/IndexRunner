@@ -1,4 +1,5 @@
 {
+   "result": [{
         "data" : {
           "app_output" : [ ],
           "job_ids" : [ ],
@@ -12,5 +13,6 @@
           "app_input" : [ ],
           "code_output" : []
         }
+}]
 }
 

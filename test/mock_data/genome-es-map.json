@@ -1,0 +1,552 @@
+{
+  "genome" : {
+    "aliases" : { },
+    "mappings" : {
+      "access" : {
+        "properties" : {
+          "extpub" : {
+            "type" : "integer"
+          },
+          "groups" : {
+            "type" : "integer"
+          },
+          "islast" : {
+            "type" : "boolean"
+          },
+          "lastin" : {
+            "type" : "integer"
+          },
+          "pguid" : {
+            "type" : "keyword"
+          },
+          "prefix" : {
+            "type" : "keyword"
+          },
+          "version" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "data" : {
+        "_parent" : {
+          "type" : "access"
+        },
+        "_routing" : {
+          "required" : true
+        },
+        "properties" : {
+          "accgrp" : {
+            "type" : "integer"
+          },
+          "copier" : {
+            "type" : "keyword"
+          },
+          "creator" : {
+            "type" : "keyword"
+          },
+          "guid" : {
+            "type" : "keyword"
+          },
+          "islast" : {
+            "type" : "boolean"
+          },
+          "keys" : {
+            "properties" : {
+              "contig_count" : {
+                "type" : "long"
+              },
+              "domain" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "feature_count" : {
+                "type" : "long"
+              },
+              "id" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "scientific_name" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "scientific_name_keyword" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "source" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "source_id" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "taxonomy" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              }
+            }
+          },
+          "md5" : {
+            "type" : "keyword"
+          },
+          "ojson" : {
+            "type" : "keyword",
+            "index" : false,
+            "doc_values" : false
+          },
+          "oname" : {
+            "type" : "text"
+          },
+          "otype" : {
+            "type" : "keyword"
+          },
+          "otypever" : {
+            "type" : "integer"
+          },
+          "pjson" : {
+            "type" : "keyword",
+            "index" : false,
+            "doc_values" : false
+          },
+          "prefix" : {
+            "type" : "keyword"
+          },
+          "prv_cmt" : {
+            "type" : "keyword"
+          },
+          "prv_meth" : {
+            "type" : "keyword"
+          },
+          "prv_mod" : {
+            "type" : "keyword"
+          },
+          "prv_ver" : {
+            "type" : "keyword"
+          },
+          "public" : {
+            "type" : "boolean"
+          },
+          "shared" : {
+            "type" : "boolean"
+          },
+          "stags" : {
+            "type" : "keyword"
+          },
+          "str_cde" : {
+            "type" : "keyword"
+          },
+          "timestamp" : {
+            "type" : "date"
+          },
+          "version" : {
+            "type" : "integer"
+          }
+        }
+      }
+    },
+    "settings" : {
+      "index" : {
+        "creation_date" : "1545521765934",
+        "number_of_shards" : "5",
+        "number_of_replicas" : "1",
+        "uuid" : "U0m5GcSURi-lKZD8cIJhvQ",
+        "version" : {
+          "created" : "5060999"
+        },
+        "provided_name" : "genome"
+      }
+    }
+  },
+  "genomefeature" : {
+    "aliases" : { },
+    "mappings" : {
+      "access" : {
+        "properties" : {
+          "extpub" : {
+            "type" : "integer"
+          },
+          "groups" : {
+            "type" : "integer"
+          },
+          "islast" : {
+            "type" : "boolean"
+          },
+          "lastin" : {
+            "type" : "integer"
+          },
+          "pguid" : {
+            "type" : "keyword"
+          },
+          "prefix" : {
+            "type" : "keyword"
+          },
+          "version" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "data" : {
+        "_parent" : {
+          "type" : "access"
+        },
+        "_routing" : {
+          "required" : true
+        },
+        "properties" : {
+          "accgrp" : {
+            "type" : "integer"
+          },
+          "copier" : {
+            "type" : "keyword"
+          },
+          "creator" : {
+            "type" : "keyword"
+          },
+          "doc" : {
+            "properties" : {
+              "accgrp" : {
+                "type" : "long"
+              },
+              "creator" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "guid" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "islast" : {
+                "type" : "boolean"
+              },
+              "keys" : {
+                "properties" : {
+                  "aliases" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "contig_guid" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "contig_id" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "feature_type" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "functions" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "genome_domain" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "genome_scientific_name" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "genome_taxonomy" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "guid" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "id" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  },
+                  "start" : {
+                    "type" : "long"
+                  },
+                  "stop" : {
+                    "type" : "long"
+                  },
+                  "strand" : {
+                    "type" : "text",
+                    "fields" : {
+                      "keyword" : {
+                        "type" : "keyword",
+                        "ignore_above" : 256
+                      }
+                    }
+                  }
+                }
+              },
+              "md5" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "ojson" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "oname" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "otypever" : {
+                "type" : "long"
+              },
+              "pjson" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "prefix" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "prv_meth" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "prv_mod" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "prv_ver" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "public" : {
+                "type" : "boolean"
+              },
+              "shared" : {
+                "type" : "boolean"
+              },
+              "str_cde" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "timestamp" : {
+                "type" : "long"
+              },
+              "version" : {
+                "type" : "long"
+              }
+            }
+          },
+          "guid" : {
+            "type" : "keyword"
+          },
+          "islast" : {
+            "type" : "boolean"
+          },
+          "md5" : {
+            "type" : "keyword"
+          },
+          "ojson" : {
+            "type" : "keyword",
+            "index" : false,
+            "doc_values" : false
+          },
+          "oname" : {
+            "type" : "text"
+          },
+          "otype" : {
+            "type" : "keyword"
+          },
+          "otypever" : {
+            "type" : "integer"
+          },
+          "pjson" : {
+            "type" : "keyword",
+            "index" : false,
+            "doc_values" : false
+          },
+          "prefix" : {
+            "type" : "keyword"
+          },
+          "prv_cmt" : {
+            "type" : "keyword"
+          },
+          "prv_meth" : {
+            "type" : "keyword"
+          },
+          "prv_mod" : {
+            "type" : "keyword"
+          },
+          "prv_ver" : {
+            "type" : "keyword"
+          },
+          "public" : {
+            "type" : "boolean"
+          },
+          "shared" : {
+            "type" : "boolean"
+          },
+          "stags" : {
+            "type" : "keyword"
+          },
+          "str_cde" : {
+            "type" : "keyword"
+          },
+          "timestamp" : {
+            "type" : "date"
+          },
+          "version" : {
+            "type" : "integer"
+          }
+        }
+      }
+    },
+    "settings" : {
+      "index" : {
+        "creation_date" : "1545521770316",
+        "number_of_shards" : "5",
+        "number_of_replicas" : "1",
+        "uuid" : "437ajPrSQwSGTYDjFmi5fw",
+        "version" : {
+          "created" : "5060999"
+        },
+        "provided_name" : "genomefeature"
+      }
+    }
+  }
+}

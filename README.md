@@ -2,7 +2,18 @@
 
 This is an index runner.  It watches a Kafka topic and can trigger indexing using indexers written with the SDK.  The results go into ElasticSearch.
 
-# Setup and test
+# Setting up Test Environment
+
+Make sure python3 is the default python and the required packages are installed.
+
+Create a test.cfg and set `KB_DEPLOYMENT_CONFIG` to point to it.
+
+```
+export KB_DEPLOYMENT_CONFIG=test.cfg
+```
+
+
+## Setup and test
 
 Start Kafka and Elastic
 
@@ -15,3 +26,16 @@ docker run -d --name=kafka --link zookeeper -p 9092:9092 -e KAFKA_ZOOKEEPER_CONN
         -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 -e "AFKA_HEAP_OPTS=-Xmx512m -Xms512m" confluentinc/cp-kafka:5.0.0
 
 ```
+
+## Building Mock Image
+
+```
+cd test/mock_indexer
+docker build -t mock_indexer .
+```
+
+
+# Notes
+
+I still don't really understand `lastin` and `extpub` but it looks like neither of
+these are used by the search api.

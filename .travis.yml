@@ -26,6 +26,6 @@ install:
   - (cd test/mock_indexer && docker build -t mock_indexer .)
 
 script:
-  - export KB_DEPLOYMENT_CONFIG=test.cfg && make test
+  - export KB_DEPLOYMENT_CONFIG=test.cfg && export KB_AUTH_TOKEN=bogus && make test
 
 after_script:

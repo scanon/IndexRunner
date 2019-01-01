@@ -7,13 +7,29 @@ from confluent_kafka import KafkaError
 import os
 
 
+class myerror():
+    def __init__(self, code, text):
+        self.text = text
+        self.ecode = code
+
+    def code(self):
+        return self.ecode
+
+    def __str__(self):
+        return self.text
+
+
 class mymessage():
-    def __init__(self, msg=None, error=False):
+    def __init__(self, msg=None, error_code=None, err_string="error"):
         self.msg = msg
-        self.ev = error
+        self.err = None
+        if error_code is not None:
+            self.err = myerror(error_code, err_string)
 
     def error(self):
-        return self.ev
+        if self.err is None:
+            return False
+        return self.err
 
     def value(self):
         return self.msg
@@ -103,7 +119,7 @@ class MethodRunnerTest(unittest.TestCase):
 
         # Kafka Error
         self._remove_error_file()
-        msg = mymessage(self.ev, 'bad kafka, bad')
+        msg = mymessage(self.ev, 1, 'bad kafka, bad')
         mock_con.return_value.poll.return_value = msg
         mock_in.return_value.process_event.side_effect = Exception('bogus')
         mock_in.return_value.process_event.reset_mock()
@@ -112,3 +128,13 @@ class MethodRunnerTest(unittest.TestCase):
         self.assertTrue(os.path.exists('error.log'))
         data, err = self._parse_error()
         self.assertIn('bad kafka', err)
+
+        # Kafka Partition Error
+        self._remove_error_file()
+        msg = mymessage(self.ev, KafkaError._PARTITION_EOF, 'ignore this')
+        mock_con.return_value.poll.return_value = msg
+        mock_in.return_value.process_event.side_effect = Exception('bogus')
+        mock_in.return_value.process_event.reset_mock()
+        kafka_watcher({'run_one': 1})
+        mock_in.return_value.process_event.assert_not_called()
+        self.assertFalse(os.path.exists('error.log'))

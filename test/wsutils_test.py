@@ -2,8 +2,8 @@
 import unittest
 import os  # noqa: F401
 import json  # noqa: F401
-import time
 from IndexRunner.WSAdminUtils import WorkspaceAdminUtil
+from nose.plugins.attrib import attr
 
 from os import environ
 from configparser import ConfigParser  # py3
@@ -24,41 +24,19 @@ class WSAdminTester(unittest.TestCase):
         config.read(config_file)
         for nameval in config.items('IndexRunner'):
             cls.cfg[nameval[0]] = nameval[1]
-        # Getting username from Auth profile for token
-        # authServiceUrl = cls.cfg['auth-service-url']
-        # auth_client = _KBaseAuth(authServiceUrl)
-        # user_id = auth_client.get_user(cls.token)
-        # WARNING: don't call any logging methods on the context object,
-        # it'll result in a NoneType error
         cls.wsURL = cls.cfg['workspace-url']
         cls.wsClient = workspaceService(cls.wsURL)
         cls.scratch = cls.cfg['scratch']
         cls.cfg['token'] = cls.token
         cls.wsid = 16962
 
-    @classmethod
-    def tearDownClass(cls):
-        if hasattr(cls, 'wsName'):
-            cls.wsClient.delete_workspace({'workspace': cls.wsName})
-            print('Test workspace was deleted')
-
-    def getWsClient(self):
-        return self.__class__.wsClient
-
-    def getWsName(self):
-        if hasattr(self.__class__, 'wsName'):
-            return self.__class__.wsName
-        suffix = int(time.time() * 1000)
-        wsName = "test_NarrativeIndexer_" + str(suffix)
-        ret = self.getWsClient().create_workspace({'workspace': wsName})  # noqa
-        self.__class__.wsName = wsName
-        return wsName
-
+    @attr('online')
     def list_test(self):
         ws = WorkspaceAdminUtil(self.cfg)
         res = ws.list_objects({'ids': [self.wsid]})[0]
         self.assertIsNotNone(res)
 
+    @attr('online')
     def get_objects_test(self):
         ws = WorkspaceAdminUtil(self.cfg)
         ob = ws.list_objects({'ids': [self.wsid]})[0]

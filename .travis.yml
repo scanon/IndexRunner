@@ -23,9 +23,9 @@ before_install:
 install:
   - export PATH=$(pwd)/bin:$PATH
   - pip install -r requirements.txt
+  - (cd test/mock_indexer && docker build -t mock_indexer .)
 
 script:
-  - export KB_DEPLOYMENT_CONFIG=test.cfg
-  - make test
+  - export KB_DEPLOYMENT_CONFIG=test.cfg && make test
 
 after_script:

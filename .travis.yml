@@ -21,7 +21,6 @@ before_script:
 
 install:
   - export PATH=$(pwd)/bin:$PATH
-  - source src/sh/sdk-completion.sh
 
 script:
   - make test

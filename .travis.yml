@@ -4,6 +4,7 @@ sudo: required
 
 services:
   - docker
+  - elasticsearch
 
 branches:
   only:
@@ -13,19 +14,16 @@ env:
 
 before_install:
   - docker version
+  - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/5.6.9/elasticsearch-5.6.9.deb && sudo dpkg -i --force-confnew elasticsearch-5.6.9.deb && sudo service elasticsearch restart
+
+before_script:
+  - sleep 10
 
 install:
-  - pushd ..
-  - git clone https://github.com/kbase/jars
-  - git clone https://github.com/kbase/kb_sdk
-  - cd kb_sdk
-  - make bin
-  - make sdkbase
   - export PATH=$(pwd)/bin:$PATH
   - source src/sh/sdk-completion.sh
-  - popd
 
 script:
-  - kb-sdk validate
+  - make test
 
 after_script:

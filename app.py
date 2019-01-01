@@ -1,5 +1,5 @@
 import os
-from Utils.EventUtils import kafka_watcher
+from IndexRunner.EventUtils import kafka_watcher
 from configparser import ConfigParser
 import time
 import logging

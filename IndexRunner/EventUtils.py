@@ -2,7 +2,7 @@
 # Kafka Event Handler
 # This waits for events and dispatches it to the indexer
 #
-from confluent_kafka import Consumer
+from confluent_kafka import Consumer, KafkaError
 import json
 from IndexRunner.IndexerUtils import IndexerUtils
 import logging
@@ -42,10 +42,12 @@ def kafka_watcher(config):
 
         data = None
         if msg is None:
-            log.error("Empty message")
+            pass
         elif msg.error():
-            _log_error('', msg.error())
-            log.error("Kafka error: " + msg.error())
+            if msg.error().code() != KafkaError._PARTITION_EOF:
+                err = str(msg.error())
+                _log_error('', err)
+                log.error("Kafka error: " + err)
         else:
             try:
                 data = json.loads(msg.value().decode('utf-8'))

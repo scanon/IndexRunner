@@ -14,7 +14,7 @@ env:
 
 before_install:
   - docker version
-  - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/5.6.11/elasticsearch-5.6.11.deb && sudo dpkg -i --force-confnew elasticsearch-5.6.11.deb && sudo service elasticsearch restart
+  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.11.deb && sudo dpkg -i --force-confnew elasticsearch-5.6.11.deb && sudo service elasticsearch restart
 
 before_script:
   - sleep 10

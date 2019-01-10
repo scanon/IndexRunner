@@ -1,5 +1,6 @@
 from IndexRunner.WSAdminUtils import WorkspaceAdminUtil
 from IndexRunner.MethodRunner import MethodRunner
+from IndexRunner.EventProducer import EventProducer
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from elasticsearch.helpers import bulk
 import os
@@ -13,6 +14,7 @@ import logging
 
 # This is the interface that will process indexing
 BULK_MAX = 9
+_MAX_LIST = 10000
 
 
 class IndexerUtils:
@@ -48,6 +50,7 @@ class IndexerUtils:
         else:
             token = os.environ.get('KB_AUTH_TOKEN')
         self.mr = MethodRunner(config, token=token)
+        self.ep = EventProducer(config)
         with open('specs/mapping.json') as f:
             d = f.read()
             self.mapping_spec = json.loads(d)
@@ -57,6 +60,7 @@ class IndexerUtils:
     def process_event(self, evt):
 
         etype = evt['evtype']
+        ws = evt['accgrp']
         if evt['ver']:
             evt['upa'] = '%d/%s/%d' % (evt['accgrp'], evt['objid'], evt['ver'])
         if etype in ['NEW_VERSION', 'NEW_ALL_VERSIONS']:
@@ -66,14 +70,26 @@ class IndexerUtils:
         elif etype.startswith('DELETE_'):
             self.delete(evt)
         elif etype == 'COPY_ACCESS_GROUP':
-            self.log.warning("Warning copy not implemented.")
+            self._index_workspace(ws)
         elif etype == 'RENAME_ALL_VERSIONS':
             self.log.warning("Warning rename not implemented.")
         elif etype in ['REINDEX_WORKSPACE']:
             # Pseudo event
-            self.log.warning("TODO reindex")
+            self._index_workspace(ws)
         else:
             self.log.error("Can't process evtype " + evt['evtype'])
+
+    def _index_workspace(self, wsid):
+        """
+        List the workspace and generate an index event for each object.
+        """
+        min = 0
+        while (True):
+            objs = self.ws.list_objects({'ids': [wsid], 'minObjectID': min})
+            self.ep.index_objects(objs)
+            if (len(objs) <= _MAX_LIST):
+                break
+            min = objs[-1][0] + 1
 
     def _create_obj_rec(self, upa):
         (wsid, objid, vers) = self._split_upa(upa)
@@ -100,7 +116,7 @@ class IndexerUtils:
           "prv_meth": prov['prv_meth'],
           "prv_ver": prov['prv_ver'],
           "prv_cmt": None,
-          "md5": info[10].get('MD5'),
+          "md5": info[8],
           "timestamp": int(time()),
           "prefix": "WS:%d/%d" % (wsid, objid),
           "str_cde": "WS",

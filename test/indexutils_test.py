@@ -28,11 +28,13 @@ class IndexerTester(unittest.TestCase):
             cls.cfg[nameval[0]] = nameval[1]
         cls.scratch = cls.cfg['scratch']
         cls.cfg['token'] = cls.token
+        cls.cfg['kafka-server'] = None
         cls.test_dir = os.path.dirname(os.path.abspath(__file__))
         cls.mock_dir = os.path.join(cls.test_dir, 'mock_data')
         cls.es = Elasticsearch(cls.cfg['elastic-host'])
 
         cls.wsinfo = cls.read_mock('get_workspace_info.json')
+        cls.wslist = cls.read_mock('list_objects.json')
         cls.narobj = cls.read_mock('narrative_object.json')
         cls.genobj = cls.read_mock('genome_object_nodata.json')
         cls.geninfo = cls.read_mock('genome_object_info.json')
@@ -265,7 +267,9 @@ class IndexerTester(unittest.TestCase):
         iu.process_event(ev)
         # TODO
 
-    def copy_event_test(self):
+    @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
+    @patch('IndexRunner.IndexerUtils.EventProducer', autospec=True)
+    def copy_event_test(self, mock_ep, mock_ws):
         # COPY_ACCESS_GROUP;
         ev = {
             "strcde": "WS",
@@ -280,5 +284,26 @@ class IndexerTester(unittest.TestCase):
             "public": False
         }
         iu = IndexerUtils(self.cfg)
+        iu.ws.list_objects.return_value = self.wslist
         iu.process_event(ev)
-        # TODO
+        iu.ep.index_objects.assert_called()
+
+    @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
+    @patch('IndexRunner.IndexerUtils.EventProducer', autospec=True)
+    def reindex_event_test(self, mock_ep, mock_ws):
+        ev = {
+            "strcde": "WS",
+            "accgrp": 1,
+            "objid": None,
+            "ver": None,
+            "newname": None,
+            "time": datetime.datetime.utcnow(),
+            "evtype": "REINDEX_WORKSPACE",
+            "objtype": None,
+            "objtypever": None,
+            "public": False
+        }
+        iu = IndexerUtils(self.cfg)
+        iu.ws.list_objects.return_value = self.wslist
+        iu.process_event(ev)
+        iu.ep.index_objects.assert_called()

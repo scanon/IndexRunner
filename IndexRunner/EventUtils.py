@@ -16,6 +16,7 @@ def _log_error(event, error):
 
 def kafka_watcher(config):
     topic = config.get('kafka-topic', 'wsevents')
+    indexer_topic = config.get('kafka-index-topic', 'idxevents')
     server = config.get('kafka-server', 'kafka')
     cgroup = config.get('kafka-clientgroup', 'search_indexer')
     config = config
@@ -35,7 +36,7 @@ def kafka_watcher(config):
     log.info("Group: %s" % (cgroup))
     log.info("Topic: %s" % (topic))
 
-    c.subscribe([topic])
+    c.subscribe([topic, indexer_topic])
 
     while True:
         msg = c.poll(0.5)

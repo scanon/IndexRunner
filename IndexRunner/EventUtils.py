@@ -35,6 +35,7 @@ def kafka_watcher(config):
     log.info("Server %s" % (server))
     log.info("Group: %s" % (cgroup))
     log.info("Topic: %s" % (topic))
+    log.info("Index Topic: %s" % (indexer_topic))
 
     c.subscribe([topic, indexer_topic])
 

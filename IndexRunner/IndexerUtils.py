@@ -37,10 +37,12 @@ class IndexerUtils:
         """
 
     def __init__(self, config):
+        self.log = logging.getLogger('indexrunner')
         self.ws = WorkspaceAdminUtil(config)
         self.es = Elasticsearch([config['elastic-host']])
         self.esbase = config['elastic-base']
         mapfile = config.get('mapping-file')
+        self.log.info("Mapping File: %s" % (mapfile))
         self.mapping = self._read_mapfile(mapfile)
 
         if 'workspace-admin-token' in config:
@@ -52,8 +54,6 @@ class IndexerUtils:
         with open('specs/mapping.json') as f:
             d = f.read()
             self.mapping_spec = json.loads(d)
-
-        self.log = logging.getLogger('indexrunner')
 
     def _read_mapfile(self, mapfile):
         with open(mapfile) as f:
@@ -349,11 +349,13 @@ class IndexerUtils:
         index = oindex['index_name']
         res = self.es.indices.exists(index=index)
         if not res:
-            (module, method) = oindex['mapping_method'].split('.')
-            params = {}
-            extra = self.mr.run(module, method, params)[0]
             schema = self.mapping_spec
-            schema['key'] = {'properties': extra}
+            meth = oindex['mapping_method']
+            if 'default_mapping' not in meth:
+                (module, method) = meth.split('.')
+                params = {}
+                extra = self.mr.run(module, method, params)[0]
+                schema['key'] = {'properties': extra}
             self.es.indices.create(index=index, body=schema)
 
     def _new_object_version_index(self, event, oindex):
@@ -372,20 +374,20 @@ class IndexerUtils:
 
         doc = self._create_obj_rec(upa)
         params = {'upa': upa}
-        (module, method) = oindex['index_method'].split('.')
-        extra = self.mr.run(module, method, params)[0]
-        self.mr.cleanup()
+        extra = {}
+        if 'default_indexer' not in oindex['index_method']:
+            (module, method) = oindex['index_method'].split('.')
+            extra = self.mr.run(module, method, params)[0]
+            self.mr.cleanup()
         if 'data' in extra and extra['data'] is not None:
             doc['keys'] = extra['data']
-        doc['ojson'] = json.dumps(doc['keys'])
-        self.log.debug(doc)
+            doc['ojson'] = json.dumps(doc['keys'])
         self._update_es_access(index, wsid, objid, vers, upa)
         res = self._put_es_data_record(index, upa, doc)
-        self.log.debug(res)
         oid = '%d/%s' % (wsid, objid)
         info = self.ws.get_object_info3({'objects': [{'ref': oid}]})['infos'][0]
         if info[4] == vers:
-            self._update_islast(index, wsid, objid, info[4])
+            self._update_islast(index, wsid, objid, vers)
 
     def _new_object_version_feature_index(self, event, oindex):
         wsid = event['accgrp']

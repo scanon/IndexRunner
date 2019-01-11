@@ -81,7 +81,6 @@ class MethodRunner:
         self.log.info("image id=%s job_id=%s" % (id, job_id))
 
         job_dir = self.scratch + '/' + job_id
-        self.dirs.append(job_dir)
         os.makedirs(job_dir)
         # Create config.properties
         config = self._create_config_properties()
@@ -131,12 +130,16 @@ class MethodRunner:
         if 'error' in output:
             raise ServerError(**output['error'])
 
+        self.dirs.append(job_dir)
         return output['result']
 
     def cleanup(self):
         for d in self.dirs:
             for f in ['token', 'config.properties', 'input.json', 'output.json']:
-                os.remove(d+'/'+f)
+                try:
+                    os.remove(d+'/'+f)
+                except:
+                    continue
             try:
                 os.removedirs(d)
             except:

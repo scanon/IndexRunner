@@ -15,7 +15,7 @@
                 "GCF_000518705.1",
                 "KBaseGenomes.Genome-14.1",
                 "2018-05-26T19:36:55+0000",
-                12,
+                3,
                 "qzhang",
                 15792,
                 "ReferenceDataManager",
@@ -44,7 +44,7 @@
             ],
             "orig_wsid": 15792,
             "path": [
-                "15792/2/12"
+                "15792/2/3"
             ],
             "provenance": [
                 {

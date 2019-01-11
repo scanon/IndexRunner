@@ -59,7 +59,7 @@ class IndexerTester(unittest.TestCase):
         return obj
 
     def reset(self):
-        for i in ['genome', 'genomefeature']:
+        for i in ['genome', 'genomefeature', 'objects']:
             try:
                 if self.es.indices.exists(index=self._iname(i)):
                     self.es.indices.delete(index=self._iname(i))
@@ -95,7 +95,6 @@ class IndexerTester(unittest.TestCase):
         iu.ws.get_workspace_info.return_value = self.wsinfo
         # iu.ws.get_objects2.return_value = {'data': [self.narobj]}
         iu.ws.get_objects2.return_value = self.narobj
-        iu.ws.list_objects.return_value = []
         rv = {'docker_img_name': 'mock_indexer:latest'}
         iu.mr.catalog.get_module_version.return_value = rv
         event = self.new_version_event.copy()
@@ -109,17 +108,48 @@ class IndexerTester(unittest.TestCase):
         iu = IndexerUtils(self.cfg)
         iu.ws.get_workspace_info.return_value = self.wsinfo
         iu.ws.get_objects2.return_value = self.genobj
-        iu.ws.list_objects.return_value = []
+        iu.ws.get_object_info3.return_value = self.geninfo
         rv = {'docker_img_name': 'mock_indexer:latest'}
         iu.mr.catalog.get_module_version.return_value = rv
         ev = self.new_version_event.copy()
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '3'
+        self.reset()
+        iu.process_event(ev)
+        id = 'WS:1:3:3'
+        res = self.es.get(index=self._iname('genome'), routing=id, doc_type='data', id=id)
+        self.assertIsNotNone(res)
+        self.assertTrue(res['_source']['islast'])
+
+        # Test with older version
+        ev = self.new_version_event.copy()
+        ev['objtype'] = 'KBaseGenomes.Genome'
+        ev['objid'] = '3'
+        ev['ver'] = 2
+        self.reset()
+        iu.process_event(ev)
+        id = 'WS:1:3:2'
+        res = self.es.get(index=self._iname('genome'), routing=id, doc_type='data', id=id)
+        self.assertIsNotNone(res)
+        self.assertFalse(res['_source']['islast'])
+
+    @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
+    @patch('IndexRunner.MethodRunner.Catalog', autospec=True)
+    def index_request_default_test(self, mock_wsa, mock_cat):
+        iu = IndexerUtils(self.cfg)
+        iu.ws.get_workspace_info.return_value = self.wsinfo
+        obj = self.genobj
+        iu.ws.get_objects2.return_value = obj
+        iu.ws.get_object_info3.return_value = self.geninfo
+        ev = self.new_version_event.copy()
+        ev['objtype'] = 'Blah.Blah'
+        ev['objid'] = '3'
         id = 'WS:1:3:3'
         self.reset()
         iu.process_event(ev)
-        res = self.es.get(index=self._iname('genome'), routing=id, doc_type='data', id=id)
+        res = self.es.get(index=self._iname('objects'), routing=id, doc_type='data', id=id)
         self.assertIsNotNone(res)
+        self.assertTrue(res['_source']['islast'])
 
     @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
     @patch('IndexRunner.MethodRunner.Catalog', autospec=True)
@@ -127,7 +157,6 @@ class IndexerTester(unittest.TestCase):
         iu = IndexerUtils(self.cfg)
         iu.ws.get_workspace_info.return_value = self.wsinfo
         iu.ws.get_objects2.return_value = self.genobj
-        iu.ws.list_objects.return_value = []
         iu.ws.get_object_info3.return_value = self.geninfo
         rv = {'docker_img_name': 'mock_indexer:latest'}
         iu.mr.catalog.get_module_version.return_value = rv
@@ -151,7 +180,6 @@ class IndexerTester(unittest.TestCase):
         iu = IndexerUtils(self.cfg)
         iu.ws.get_workspace_info.return_value = self.wsinfo
         # iu.ws.get_objects2.return_value = self.genobj
-        iu.ws.list_objects.return_value = []
         iu.ws.get_object_info3.return_value = self.geninfo
         rv = {'docker_img_name': 'test/kb_genomeindexer:latest'}
         iu.mr.catalog.get_module_version.return_value = rv

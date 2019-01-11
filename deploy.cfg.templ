@@ -12,7 +12,7 @@ workspace-admin-token = {{ default .Env.workspace_admin_token "" }}
 elastic-host = {{ default .Env.elastic_host "elasticsearch:9200" }}
 elastic-user = {{ default .Env.elastic_user "" }}
 elastic-password = {{ default .Env.elastic_password "" }}
-elastic-namespace={{ default .Env.elastic_namespace "kbase.1" }}
+elastic-base={{ default .Env.elastic_base "indexer" }}
 mapping-file={{ default .Env.mapping_file "./mapping.yaml" }}
 
 kafka-server =  {{ default .Env.kafka_server "kafka" }}
@@ -20,4 +20,3 @@ kafka-topic = {{ default .Env.kafka_topic "wsevents" }}
 kafka-clientgroup = {{ default .Env.kafka_clientgroup "index_runner" }}
 
 scratch = {{ default .Env.scratch "/scratch" }}
-elastic-base = ciraw

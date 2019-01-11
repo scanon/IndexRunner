@@ -29,6 +29,7 @@ class IndexerTester(unittest.TestCase):
         cls.scratch = cls.cfg['scratch']
         cls.cfg['token'] = cls.token
         cls.cfg['kafka-server'] = None
+        cls.base = cls.cfg['elastic-base']
         cls.test_dir = os.path.dirname(os.path.abspath(__file__))
         cls.mock_dir = os.path.join(cls.test_dir, 'mock_data')
         cls.es = Elasticsearch(cls.cfg['elastic-host'])
@@ -60,10 +61,13 @@ class IndexerTester(unittest.TestCase):
     def reset(self):
         for i in ['genome', 'genomefeature']:
             try:
-                if self.es.indices.exists(index=i):
-                    self.es.indices.delete(index=i)
+                if self.es.indices.exists(index=self._iname(i)):
+                    self.es.indices.delete(index=self._iname(i))
             except:
                 pass
+
+    def _iname(self, index):
+        return '%s.%s' % (self.base, index)
 
     def _init_es_genome(self):
         self.reset()
@@ -74,12 +78,15 @@ class IndexerTester(unittest.TestCase):
         for index in indices:
             schema = d[index]
             schema.pop('settings')
-            self.es.indices.create(index=index, body=schema)
+            self.es.indices.create(index=self._iname(index), body=schema)
         with open(os.path.join(self.mock_dir, 'genome-es.json')) as f:
             d = json.loads(f.read())['hits']['hits']
+        for r in d:
+            i = r['_index']
+            r['_index'] = self._iname(i)
         bulk(self.es, d)
         for index in indices:
-            self.es.indices.refresh(index=index)
+            self.es.indices.refresh(index=self._iname(index))
 
     @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
     @patch('IndexRunner.MethodRunner.Catalog', autospec=True)
@@ -111,7 +118,7 @@ class IndexerTester(unittest.TestCase):
         id = 'WS:1:3:3'
         self.reset()
         iu.process_event(ev)
-        res = self.es.get(index='genome', routing=id, doc_type='data', id=id)
+        res = self.es.get(index=self._iname('genome'), routing=id, doc_type='data', id=id)
         self.assertIsNotNone(res)
 
     @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
@@ -132,7 +139,7 @@ class IndexerTester(unittest.TestCase):
         id = 'WS:1:3:3'
         self.reset()
         iu.process_event(ev)
-        res = self.es.get(index='genome', routing=id, doc_type='data', id=id)
+        res = self.es.get(index=self._iname('genome'), routing=id, doc_type='data', id=id)
         self.assertIsNotNone(res)
         self.assertIn('ojson', res['_source'])
         self.assertTrue(res['_source']['islast'])
@@ -156,10 +163,10 @@ class IndexerTester(unittest.TestCase):
         id = 'WS:15792:2:1'
         self.reset()
         iu.process_event(ev)
-        res = self.es.get(index='genome', routing=id, doc_type='data', id=id)
+        res = self.es.get(index=self._iname('genome'), routing=id, doc_type='data', id=id)
         self.assertIsNotNone(res)
         fid = 'WS:15792:2:1:L876_RS0116375'
-        res = self.es.get(index='genomefeature', routing=id,
+        res = self.es.get(index=self._iname('genomefeature'), routing=id,
                           doc_type='data', id=fid)
         self.assertIsNotNone(res)
         self.assertIn('ojson', res['_source'])
@@ -216,10 +223,10 @@ class IndexerTester(unittest.TestCase):
         iu.process_event(ev)
         # Check that accgrp changed
         id = 'WS:1:3:3'
-        res = self.es.get(index='genome', routing=id, doc_type='access',
+        res = self.es.get(index=self._iname('genome'), routing=id, doc_type='access',
                           id=id)
         self.assertIn(-1, res['_source']['groups'])
-        res = self.es.get(index='genome', routing=id, doc_type='data',
+        res = self.es.get(index=self._iname('genome'), routing=id, doc_type='data',
                           id=id)
         self.assertTrue(res['_source']['public'])
         #
@@ -230,11 +237,11 @@ class IndexerTester(unittest.TestCase):
         iu.process_event(ev)
         # Check that accgrp changed
         id = 'WS:1:3:3'
-        res = self.es.get(index='genome', routing=id, doc_type='access',
-                          id=id)
+        res = self.es.get(index=self._iname('genome'), routing=id,
+                          doc_type='access', id=id)
         self.assertNotIn(-1, res['_source']['groups'])
-        res = self.es.get(index='genome', routing=id, doc_type='data',
-                          id=id)
+        res = self.es.get(index=self._iname('genome'), routing=id,
+                          doc_type='data', id=id)
         self.assertFalse(res['_source']['public'])
 
     @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
@@ -249,7 +256,7 @@ class IndexerTester(unittest.TestCase):
         iu = IndexerUtils(self.cfg)
         iu.process_event(ev)
         id = 'WS:1:3:3'
-        res = self.es.get(index='genome', routing=id, doc_type='data',
+        res = self.es.get(index=self._iname('genome'), routing=id, doc_type='data',
                           id=id, ignore=404)
         self.assertFalse(res['found'])
         #

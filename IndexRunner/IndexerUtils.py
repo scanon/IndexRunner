@@ -38,13 +38,11 @@ class IndexerUtils:
 
     def __init__(self, config):
         self.ws = WorkspaceAdminUtil(config)
-        mapfile = config.get('mapping-file')
-        with open(mapfile) as f:
-            d = f.read()
-            self.mapping = yaml.load(d)['types']
-
-            self.es = Elasticsearch([config['elastic-host']])
+        self.es = Elasticsearch([config['elastic-host']])
         self.esbase = config['elastic-base']
+        mapfile = config.get('mapping-file')
+        self.mapping = self._read_mapfile(mapfile)
+
         if 'workspace-admin-token' in config:
             token = config['workspace-admin-token']
         else:
@@ -56,6 +54,16 @@ class IndexerUtils:
             self.mapping_spec = json.loads(d)
 
         self.log = logging.getLogger('indexrunner')
+
+    def _read_mapfile(self, mapfile):
+        with open(mapfile) as f:
+            d = f.read()
+        mapping = yaml.load(d)['types']
+        for type in mapping.keys():
+            for index in mapping[type]:
+                name = index['index_name']
+                index['index_name'] = '%s.%s' % (self.esbase, name)
+        return mapping
 
     def process_event(self, evt):
 

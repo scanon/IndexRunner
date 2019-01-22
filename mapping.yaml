@@ -2,28 +2,23 @@ types:
     All:
          -
              index_method: default_indexer
-             mapping_method: default_mapping
              index_name: allobjects
     Other:
          -
              comment: Everything without a specific indexer
              index_method: default_indexer
-             mapping_method: default_mapping
              index_name: objects
 
     KBaseGenomes.Genome:
          -
              index_method: kb_GenomeIndexer.genome_index
-             mapping_method: kb_GenomeIndexer.genome_mapping
              index_name: genome
          -
              index_method: kb_GenomeIndexer.genomefeature_index
-             mapping_method: kb_GenomeIndexer.genomefeature_mapping
              index_name: genomefeature
-             feature: True
+             multi: True
 
     KBaseNarrative.Narrative:
          -
              index_method: NarrativeIndexer.index
-             mapping_method: NarrativeIndexer.mapping
              index_name: narrative

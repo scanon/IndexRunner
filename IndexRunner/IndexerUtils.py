@@ -328,31 +328,24 @@ class IndexerUtils:
             return self.mapping[otype]
         return self.mapping['Other']
 
-    def _check_mapping(self, oindex):
+    def _check_mapping(self, oindex, objschema):
         index = oindex['index_name']
         res = self.es.indices.exists(index=index)
         if not res:
             schema = self.mapping_spec
-            meth = oindex['mapping_method']
-            if 'default_mapping' not in meth:
-                (module, method) = meth.split('.')
-                params = {}
-                extra = self.mr.run(module, method, params)[0]
-                if 'raw' in oindex and oindex['raw']:
-                    schema = {'mappings': {'data': {'properties': extra['schema']}}}
-                else:
-                    schema['mappings']['data']['properties']['key'] = \
-                        {'properties': extra['schema']}
+            if 'raw' in oindex and oindex['raw']:
+                schema = {'mappings': {'data': {'properties': objschema}}}
+            elif objschema is not None:
+                schema['mappings']['data']['properties']['key'] = \
+                    {'properties': objschema}
             self.es.indices.create(index=index, body=schema)
 
     def _new_raw_version_index(self, event, oindex):
         upa = event['upa']
         index = oindex['index_name']
-        self._check_mapping(oindex)
-
         eid = self._get_id(upa)
         res = self.es.get(index=index, doc_type='data', id=eid, ignore=404)
-        if res['found']:
+        if res.get('status') != 404 and res['found']:
             self.log.info("%s already indexed in %s" % (eid, index))
             return
 
@@ -363,6 +356,7 @@ class IndexerUtils:
         self.mr.cleanup()
         if 'data' not in resp or resp['data'] is None:
             return
+        self._check_mapping(oindex, resp['schema'])
         doc = resp['data']
         res = self.es.create(index=index, doc_type='data',
                              id=eid, body=doc, refresh=True)
@@ -373,21 +367,23 @@ class IndexerUtils:
         vers = event['ver']
         upa = event['upa']
         index = oindex['index_name']
-        self._check_mapping(oindex)
 
         eid = self._get_id(upa)
         res = self.es.get(index=index, doc_type='access', id=eid, ignore=404)
-        if res['found']:
+        if res.get('status') != 404 and res['found']:
             self.log.info("%s already indexed in %s" % (eid, index))
             return
 
         doc = self._create_obj_rec(upa)
         params = {'upa': upa}
         extra = {}
+        schema = None
         if 'default_indexer' not in oindex['index_method']:
             (module, method) = oindex['index_method'].split('.')
             extra = self.mr.run(module, method, params)[0]
             self.mr.cleanup()
+            schema = extra['schema']
+        self._check_mapping(oindex, schema)
         if 'data' in extra and extra['data'] is not None:
             doc['keys'] = extra['data']
             doc['ojson'] = json.dumps(doc['keys'])
@@ -398,7 +394,7 @@ class IndexerUtils:
         if info[4] == vers:
             self._update_islast(index, wsid, objid, vers)
 
-    def _new_object_version_feature_index(self, event, oindex):
+    def _new_object_version_multi_index(self, event, oindex):
         """
         This handles indexing features for a specific version.
         The callout should return a structure with a 'features' that
@@ -409,12 +405,11 @@ class IndexerUtils:
         vers = event['ver']
         upa = event['upa']
         index = oindex['index_name']
-        self._check_mapping(oindex)
 
         # Check if any exists
         eid = self._get_id(upa)
         res = self.es.get(index=index, doc_type='access', id=eid, ignore=404)
-        if res['found']:
+        if res.get('status') != 404 and res['found']:
             self.log.info("%s already indexed in %s" % (eid, index))
             return
 
@@ -424,6 +419,7 @@ class IndexerUtils:
         extra = self.mr.run(module, method, params)[0]
         self.mr.cleanup()
         parent = extra['parent']
+        self._check_mapping(oindex, extra['schema'])
         if 'features' in extra and extra['features'] is not None:
             features = extra['features']
         recs = []
@@ -478,8 +474,8 @@ class IndexerUtils:
         indexes = self._get_indexes(event['objtype'])
         for oindex in indexes:
             try:
-                if 'feature' in oindex and oindex['feature']:
-                    self._new_object_version_feature_index(event, oindex)
+                if 'multi' in oindex and oindex['multi']:
+                    self._new_object_version_multi_index(event, oindex)
                 elif 'raw' in oindex and oindex['raw']:
                     self._new_raw_version_index(event, oindex)
                 else:

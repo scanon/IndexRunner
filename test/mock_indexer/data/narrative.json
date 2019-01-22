@@ -1,18 +1,42 @@
 {
-   "result": [{
-        "data" : {
-          "app_output" : [ ],
-          "job_ids" : [ ],
-          "app_info" : [ ],
-          "source" : [
-            "# Markdown Title"
-          ],
-          "title" : [
-            "Stats Test"
-          ],
-          "app_input" : [ ],
-          "code_output" : []
+    "result": [
+        {
+            "data": {
+                "app_output": [],
+                "job_ids": [],
+                "app_info": [],
+                "source": [
+                    "# Markdown Title"
+                ],
+                "title": [
+                    "Stats Test"
+                ],
+                "app_input": [],
+                "code_output": []
+            },
+            "schema": {
+                "app_info": {
+                    "type": "text"
+                },
+                "app_input": {
+                    "type": "text"
+                },
+                "app_output": {
+                    "type": "text"
+                },
+                "code_output": {
+                    "type": "text"
+                },
+                "job_ids": {
+                    "type": "keyword"
+                },
+                "source": {
+                    "type": "text"
+                },
+                "title": {
+                    "type": "text"
+                }
+            }
         }
-}]
+    ]
 }
-

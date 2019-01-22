@@ -407,26 +407,23 @@ class IndexerTester(unittest.TestCase):
         iu.mapping['KBaseGenomes.Genome'] = [
             {
                 'index_method': 'bogus.genome_index',
-                'mapping_method': 'bogus.genome_mapping',
                 'raw': True,
                 'index_name': 'ciraw.sketch'
             }
         ]
-        map = {
+        index = {
             'schema': {
                 'upa': {'type': 'string'},
                 'mash': {'type': 'binary'},
                 'timestamp': {'type': 'long'}
-            }
-        }
-        index = {
+            },
             'data': {
                 'upa': '1/3/2',
                 'mash': 'blaslsadlfasdf',
                 'timestamp': '1234'
             }
         }
-        iu.mr.run.side_effect = [[map], [index]]
+        iu.mr.run.return_value = [index]
         ev = self.new_version_event.copy()
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '3'
@@ -443,5 +440,5 @@ class IndexerTester(unittest.TestCase):
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '4'
         ev['ver'] = 2
-        iu.mr.run.side_effect = [[{}]]
+        iu.mr.run.return_value = [{}]
         iu.process_event(ev)

@@ -1,374 +1,420 @@
 {
-    "result": [{
-    "features": [
+    "result": [
         {
-            "aliases": [
-                "protein_id",
-                "NP_418351.1",
-                "gene_synonym",
-                "ECK3908; JW3887",
-                "EC_number",
-                "2.7.1.11",
-                "gene",
-                "pfkA",
-                "locus_tag",
-                "b3916"
-            ],
-            "contig_guid": [
-                "WS:29934/1/1:contig/NC_000913.3"
-            ],
-            "contig_id": [
-                "NC_000913.3"
-            ],
-            "feature_type": [
-                "gene"
-            ],
-            "functions": [
-                "enzyme",
-                "product:6-phosphofructokinase I",
-                "Energy metabolism, carbon: Glycolysis"
-            ],
-            "guid": "29934/2/1:Feature/b3916",
-            "id": [
-                "b3916"
-            ],
-            "start": [
-                4107552
-            ],
-            "stop": [
-                4108514
-            ],
-            "strand": [
-                "+"
-            ]
-        },
-        {
-            "aliases": [
-                "gene",
-                "tnaC",
-                "gene_synonym",
-                "ECK3700; JW3685; tnaL",
-                "protein_id",
-                "NP_418163.1",
-                "locus_tag",
-                "b3707"
-            ],
-            "contig_guid": [
-                "WS:29934/1/1:contig/NC_000913.3"
-            ],
-            "contig_id": [
-                "NC_000913.3"
-            ],
-            "feature_type": [
-                "gene"
-            ],
-            "functions": [
-                "product:tryptophanase leader peptide",
-                "leader",
-                "Degradation of small molecules: Amino acids"
-            ],
-            "guid": "29934/2/1:Feature/b3707",
-            "id": [
-                "b3707"
-            ],
-            "start": [
-                3888435
-            ],
-            "stop": [
-                3888509
-            ],
-            "strand": [
-                "+"
-            ]
-        },
-        {
-            "aliases": [
-                "EC_number",
-                "4.1.3.6",
-                "locus_tag",
-                "b0617",
-                "gene",
-                "citD",
-                "protein_id",
-                "NP_415150.1",
-                "gene_synonym",
-                "ECK0610; JW0609; ybdX"
-            ],
-            "contig_guid": [
-                "WS:29934/1/1:contig/NC_000913.3"
-            ],
-            "contig_id": [
-                "NC_000913.3"
-            ],
-            "feature_type": [
-                "gene"
-            ],
-            "functions": [
-                "enzyme",
-                "product:citrate lyase, acyl carrier (gamma) subunit",
-                "Central intermediary metabolism: Pool, multipurpose conversions"
-            ],
-            "guid": "29934/2/1:Feature/b0617",
-            "id": [
-                "b0617"
-            ],
-            "start": [
-                650487
-            ],
-            "stop": [
-                650783
-            ],
-            "strand": [
-                "-"
-            ]
-        },
-        {
-            "aliases": [
-                "gene_synonym",
-                "ECK3147; JW5530",
-                "protein_id",
-                "NP_417628.2",
-                "gene",
-                "yhbV",
-                "locus_tag",
-                "b3159"
-            ],
-            "contig_guid": [
-                "WS:29934/1/1:contig/NC_000913.3"
-            ],
-            "contig_id": [
-                "NC_000913.3"
-            ],
-            "feature_type": [
-                "gene"
-            ],
-            "functions": [
-                "product:U32 peptidase family protein"
-            ],
-            "guid": "29934/2/1:Feature/b3159",
-            "id": [
-                "b3159"
-            ],
-            "start": [
-                3302489
-            ],
-            "stop": [
-                3303367
-            ],
-            "strand": [
-                "+"
-            ]
-        },
-        {
-            "aliases": [
-                "protein_id",
-                "NP_416882.1",
-                "gene",
-                "ypdB",
-                "locus_tag",
-                "b2381",
-                "gene_synonym",
-                "ECK2377; JW2378"
-            ],
-            "contig_guid": [
-                "WS:29934/1/1:contig/NC_000913.3"
-            ],
-            "contig_id": [
-                "NC_000913.3"
-            ],
-            "feature_type": [
-                "gene"
-            ],
-            "functions": [
-                "Not classified",
-                "product:response regulator activating yhjX; pyruvate-responsive YpdAB two-component system",
-                "putative regulator"
-            ],
-            "guid": "29934/2/1:Feature/b2381",
-            "id": [
-                "b2381"
-            ],
-            "start": [
-                2500383
-            ],
-            "stop": [
-                2501117
-            ],
-            "strand": [
-                "+"
-            ]
-        },
-        {
-            "aliases": [
-                "locus_tag",
-                "b2914",
-                "EC_number",
-                "5.3.1.6",
-                "protein_id",
-                "NP_417389.1",
-                "gene",
-                "rpiA",
-                "gene_synonym",
-                "ECK2910; JW5475; ygfC"
-            ],
-            "contig_guid": [
-                "WS:29934/1/1:contig/NC_000913.3"
-            ],
-            "contig_id": [
-                "NC_000913.3"
-            ],
-            "feature_type": [
-                "gene"
-            ],
-            "functions": [
-                "enzyme",
-                "Central intermediary metabolism: Non-oxidative branch, pentose pathway",
-                "product:ribose 5-phosphate isomerase, constitutive"
-            ],
-            "guid": "29934/2/1:Feature/b2914",
-            "id": [
-                "b2914"
-            ],
-            "start": [
-                3058666
-            ],
-            "stop": [
-                3059325
-            ],
-            "strand": [
-                "-"
-            ]
-        },
-        {
-            "aliases": [
-                "gene",
-                "rhtA",
-                "protein_id",
-                "NP_415334.1",
-                "locus_tag",
-                "b0813",
-                "gene_synonym",
-                "ECK0802; JW0798; ybiF"
-            ],
-            "contig_guid": [
-                "WS:29934/1/1:contig/NC_000913.3"
-            ],
-            "contig_id": [
-                "NC_000913.3"
-            ],
-            "feature_type": [
-                "gene"
-            ],
-            "functions": [
-                "product:threonine and homoserine efflux system",
-                "Not classified",
-                "putative membrane"
-            ],
-            "guid": "29934/2/1:Feature/b0813",
-            "id": [
-                "b0813"
-            ],
-            "start": [
-                849210
-            ],
-            "stop": [
-                850097
-            ],
-            "strand": [
-                "-"
-            ]
-        },
-        {
-            "aliases": [
-                "gene",
-                "mepA",
-                "gene_synonym",
-                "ECK2322; JW2325",
-                "protein_id",
-                "NP_416831.1",
-                "EC_number",
-                "3.4.24.-",
-                "locus_tag",
-                "b2328"
-            ],
-            "contig_guid": [
-                "WS:29934/1/1:contig/NC_000913.3"
-            ],
-            "contig_id": [
-                "NC_000913.3"
-            ],
-            "feature_type": [
-                "gene"
-            ],
-            "functions": [
-                "enzyme",
-                "Murein sacculus, peptidoglycan",
-                "product:murein DD-endopeptidase"
-            ],
-            "guid": "29934/2/1:Feature/b2328",
-            "id": [
-                "b2328"
-            ],
-            "start": [
-                2445560
-            ],
-            "stop": [
-                2446384
-            ],
-            "strand": [
-                "-"
-            ]
-        },
-        {
-            "aliases": [
-                "protein_id",
-                "NP_417032.1",
-                "gene_synonym",
-                "ECK2534; JW2521; phdR; yfhT",
-                "gene",
-                "hcaR",
-                "locus_tag",
-                "b2537"
-            ],
-            "contig_guid": [
-                "WS:29934/1/1:contig/NC_000913.3"
-            ],
-            "contig_id": [
-                "NC_000913.3"
-            ],
-            "feature_type": [
-                "gene"
-            ],
-            "functions": [
-                "regulator",
-                "product:hca operon transcriptional regulator",
-                "Degradation of small molecules: Carbon compounds"
-            ],
-            "guid": "29934/2/1:Feature/b2537",
-            "id": [
-                "b2537"
-            ],
-            "start": [
-                2668006
-            ],
-            "stop": [
-                2668896
-            ],
-            "strand": [
-                "-"
-            ]
+            "features": [
+                {
+                    "aliases": [
+                        "protein_id",
+                        "NP_418351.1",
+                        "gene_synonym",
+                        "ECK3908; JW3887",
+                        "EC_number",
+                        "2.7.1.11",
+                        "gene",
+                        "pfkA",
+                        "locus_tag",
+                        "b3916"
+                    ],
+                    "contig_guid": [
+                        "WS:29934/1/1:contig/NC_000913.3"
+                    ],
+                    "contig_id": [
+                        "NC_000913.3"
+                    ],
+                    "feature_type": [
+                        "gene"
+                    ],
+                    "functions": [
+                        "enzyme",
+                        "product:6-phosphofructokinase I",
+                        "Energy metabolism, carbon: Glycolysis"
+                    ],
+                    "guid": "29934/2/1:Feature/b3916",
+                    "id": [
+                        "b3916"
+                    ],
+                    "start": [
+                        4107552
+                    ],
+                    "stop": [
+                        4108514
+                    ],
+                    "strand": [
+                        "+"
+                    ]
+                },
+                {
+                    "aliases": [
+                        "gene",
+                        "tnaC",
+                        "gene_synonym",
+                        "ECK3700; JW3685; tnaL",
+                        "protein_id",
+                        "NP_418163.1",
+                        "locus_tag",
+                        "b3707"
+                    ],
+                    "contig_guid": [
+                        "WS:29934/1/1:contig/NC_000913.3"
+                    ],
+                    "contig_id": [
+                        "NC_000913.3"
+                    ],
+                    "feature_type": [
+                        "gene"
+                    ],
+                    "functions": [
+                        "product:tryptophanase leader peptide",
+                        "leader",
+                        "Degradation of small molecules: Amino acids"
+                    ],
+                    "guid": "29934/2/1:Feature/b3707",
+                    "id": [
+                        "b3707"
+                    ],
+                    "start": [
+                        3888435
+                    ],
+                    "stop": [
+                        3888509
+                    ],
+                    "strand": [
+                        "+"
+                    ]
+                },
+                {
+                    "aliases": [
+                        "EC_number",
+                        "4.1.3.6",
+                        "locus_tag",
+                        "b0617",
+                        "gene",
+                        "citD",
+                        "protein_id",
+                        "NP_415150.1",
+                        "gene_synonym",
+                        "ECK0610; JW0609; ybdX"
+                    ],
+                    "contig_guid": [
+                        "WS:29934/1/1:contig/NC_000913.3"
+                    ],
+                    "contig_id": [
+                        "NC_000913.3"
+                    ],
+                    "feature_type": [
+                        "gene"
+                    ],
+                    "functions": [
+                        "enzyme",
+                        "product:citrate lyase, acyl carrier (gamma) subunit",
+                        "Central intermediary metabolism: Pool, multipurpose conversions"
+                    ],
+                    "guid": "29934/2/1:Feature/b0617",
+                    "id": [
+                        "b0617"
+                    ],
+                    "start": [
+                        650487
+                    ],
+                    "stop": [
+                        650783
+                    ],
+                    "strand": [
+                        "-"
+                    ]
+                },
+                {
+                    "aliases": [
+                        "gene_synonym",
+                        "ECK3147; JW5530",
+                        "protein_id",
+                        "NP_417628.2",
+                        "gene",
+                        "yhbV",
+                        "locus_tag",
+                        "b3159"
+                    ],
+                    "contig_guid": [
+                        "WS:29934/1/1:contig/NC_000913.3"
+                    ],
+                    "contig_id": [
+                        "NC_000913.3"
+                    ],
+                    "feature_type": [
+                        "gene"
+                    ],
+                    "functions": [
+                        "product:U32 peptidase family protein"
+                    ],
+                    "guid": "29934/2/1:Feature/b3159",
+                    "id": [
+                        "b3159"
+                    ],
+                    "start": [
+                        3302489
+                    ],
+                    "stop": [
+                        3303367
+                    ],
+                    "strand": [
+                        "+"
+                    ]
+                },
+                {
+                    "aliases": [
+                        "protein_id",
+                        "NP_416882.1",
+                        "gene",
+                        "ypdB",
+                        "locus_tag",
+                        "b2381",
+                        "gene_synonym",
+                        "ECK2377; JW2378"
+                    ],
+                    "contig_guid": [
+                        "WS:29934/1/1:contig/NC_000913.3"
+                    ],
+                    "contig_id": [
+                        "NC_000913.3"
+                    ],
+                    "feature_type": [
+                        "gene"
+                    ],
+                    "functions": [
+                        "Not classified",
+                        "product:response regulator activating yhjX; pyruvate-responsive YpdAB two-component system",
+                        "putative regulator"
+                    ],
+                    "guid": "29934/2/1:Feature/b2381",
+                    "id": [
+                        "b2381"
+                    ],
+                    "start": [
+                        2500383
+                    ],
+                    "stop": [
+                        2501117
+                    ],
+                    "strand": [
+                        "+"
+                    ]
+                },
+                {
+                    "aliases": [
+                        "locus_tag",
+                        "b2914",
+                        "EC_number",
+                        "5.3.1.6",
+                        "protein_id",
+                        "NP_417389.1",
+                        "gene",
+                        "rpiA",
+                        "gene_synonym",
+                        "ECK2910; JW5475; ygfC"
+                    ],
+                    "contig_guid": [
+                        "WS:29934/1/1:contig/NC_000913.3"
+                    ],
+                    "contig_id": [
+                        "NC_000913.3"
+                    ],
+                    "feature_type": [
+                        "gene"
+                    ],
+                    "functions": [
+                        "enzyme",
+                        "Central intermediary metabolism: Non-oxidative branch, pentose pathway",
+                        "product:ribose 5-phosphate isomerase, constitutive"
+                    ],
+                    "guid": "29934/2/1:Feature/b2914",
+                    "id": [
+                        "b2914"
+                    ],
+                    "start": [
+                        3058666
+                    ],
+                    "stop": [
+                        3059325
+                    ],
+                    "strand": [
+                        "-"
+                    ]
+                },
+                {
+                    "aliases": [
+                        "gene",
+                        "rhtA",
+                        "protein_id",
+                        "NP_415334.1",
+                        "locus_tag",
+                        "b0813",
+                        "gene_synonym",
+                        "ECK0802; JW0798; ybiF"
+                    ],
+                    "contig_guid": [
+                        "WS:29934/1/1:contig/NC_000913.3"
+                    ],
+                    "contig_id": [
+                        "NC_000913.3"
+                    ],
+                    "feature_type": [
+                        "gene"
+                    ],
+                    "functions": [
+                        "product:threonine and homoserine efflux system",
+                        "Not classified",
+                        "putative membrane"
+                    ],
+                    "guid": "29934/2/1:Feature/b0813",
+                    "id": [
+                        "b0813"
+                    ],
+                    "start": [
+                        849210
+                    ],
+                    "stop": [
+                        850097
+                    ],
+                    "strand": [
+                        "-"
+                    ]
+                },
+                {
+                    "aliases": [
+                        "gene",
+                        "mepA",
+                        "gene_synonym",
+                        "ECK2322; JW2325",
+                        "protein_id",
+                        "NP_416831.1",
+                        "EC_number",
+                        "3.4.24.-",
+                        "locus_tag",
+                        "b2328"
+                    ],
+                    "contig_guid": [
+                        "WS:29934/1/1:contig/NC_000913.3"
+                    ],
+                    "contig_id": [
+                        "NC_000913.3"
+                    ],
+                    "feature_type": [
+                        "gene"
+                    ],
+                    "functions": [
+                        "enzyme",
+                        "Murein sacculus, peptidoglycan",
+                        "product:murein DD-endopeptidase"
+                    ],
+                    "guid": "29934/2/1:Feature/b2328",
+                    "id": [
+                        "b2328"
+                    ],
+                    "start": [
+                        2445560
+                    ],
+                    "stop": [
+                        2446384
+                    ],
+                    "strand": [
+                        "-"
+                    ]
+                },
+                {
+                    "aliases": [
+                        "protein_id",
+                        "NP_417032.1",
+                        "gene_synonym",
+                        "ECK2534; JW2521; phdR; yfhT",
+                        "gene",
+                        "hcaR",
+                        "locus_tag",
+                        "b2537"
+                    ],
+                    "contig_guid": [
+                        "WS:29934/1/1:contig/NC_000913.3"
+                    ],
+                    "contig_id": [
+                        "NC_000913.3"
+                    ],
+                    "feature_type": [
+                        "gene"
+                    ],
+                    "functions": [
+                        "regulator",
+                        "product:hca operon transcriptional regulator",
+                        "Degradation of small molecules: Carbon compounds"
+                    ],
+                    "guid": "29934/2/1:Feature/b2537",
+                    "id": [
+                        "b2537"
+                    ],
+                    "start": [
+                        2668006
+                    ],
+                    "stop": [
+                        2668896
+                    ],
+                    "strand": [
+                        "-"
+                    ]
+                }
+            ],
+            "parent": {
+                "genome_domain": [
+                    "Bacteria"
+                ],
+                "genome_scientific_name": [
+                    "Escherichia coli str. K-12 substr. MG1655"
+                ],
+                "genome_taxonomy": [
+                    "cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia"
+                ]
+            },
+            "schema": {
+                "aliases": {
+                    "type": "keyword"
+                },
+                "assembly_guid": {
+                    "type": "keyword"
+                },
+                "contig_guid": {
+                    "type": "keyword"
+                },
+                "contig_id": {
+                    "type": "text"
+                },
+                "feature_type": {
+                    "type": "keyword"
+                },
+                "functions": {
+                    "type": "text"
+                },
+                "genome_domain": {
+                    "type": "keyword"
+                },
+                "genome_scientific_name": {
+                    "type": "text"
+                },
+                "genome_taxonomy": {
+                    "type": "text"
+                },
+                "id": {
+                    "type": "keyword"
+                },
+                "protein_translation": {
+                    "type": "keyword"
+                },
+                "start": {
+                    "type": "integer"
+                },
+                "stop": {
+                    "type": "integer"
+                },
+                "strand": {
+                    "type": "keyword"
+                }
+            }
         }
-    ],
-    "parent": {
-        "genome_domain": [
-            "Bacteria"
-        ],
-        "genome_scientific_name": [
-            "Escherichia coli str. K-12 substr. MG1655"
-        ],
-        "genome_taxonomy": [
-            "cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia"
-        ]
-    }
-}]
+    ]
 }

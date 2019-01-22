@@ -59,7 +59,7 @@ class IndexerTester(unittest.TestCase):
         return obj
 
     def reset(self):
-        for i in ['genome', 'genomefeature', 'objects']:
+        for i in ['genome', 'genomefeature', 'objects', 'sketch']:
             try:
                 if self.es.indices.exists(index=self._iname(i)):
                     self.es.indices.delete(index=self._iname(i))
@@ -87,6 +87,55 @@ class IndexerTester(unittest.TestCase):
         bulk(self.es, d)
         for index in indices:
             self.es.indices.refresh(index=self._iname(index))
+
+    @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
+    def skip_temp_test(self, wsa):
+        iu = IndexerUtils(self.cfg)
+        wsi = self.wsinfo
+        wsi[8]['is_temporary'] = 'true'
+        iu.ws.get_workspace_info.return_value = wsi
+        # iu.ws.get_objects2.return_value = {'data': [self.narobj]}
+        iu.ws.get_objects2.return_value = self.narobj
+        res = iu._create_obj_rec('1/2/3')
+        self.assertIsNone(res)
+        res = iu._update_es_access('bogus', 1, 2, 3, '1/2/3')
+        self.assertIsNone(res)
+
+    def prov_test(self):
+        iu = IndexerUtils(self.cfg)
+        obj = dict()
+        resp = iu._get_prov(obj)
+        self.assertIn('prv_meth', resp)
+        self.assertIsNone(resp['prv_meth'])
+        prv = {
+            'service': 'bogus',
+            'method': 'bogus2',
+            'service_ver': '1.0',
+            'description': 'desc'
+            }
+        obj['provenance'] = [prv]
+        resp = iu._get_prov(obj)
+        self.assertEquals(resp['prv_mod'], 'bogus')
+        self.assertEquals(resp['prv_meth'], 'bogus2')
+        self.assertEquals(resp['prv_ver'], '1.0')
+        self.assertEquals(resp['prv_cmt'], 'desc')
+
+        # Test script
+        obj['provenance'] = [{'script': 'bogus3', 'script_ver': '1.1'}]
+        resp = iu._get_prov(obj)
+        self.assertEquals(resp['prv_mod'], 'legacy_transform')
+        self.assertEquals(resp['prv_meth'], 'bogus3')
+        self.assertEquals(resp['prv_ver'], '1.1')
+
+    def acces_rec_test(self):
+        iu = IndexerUtils(self.cfg)
+        resp = iu._access_rec(1, 2, 3, public=True)
+        self.assertIn(-1, resp['groups'])
+
+    def get_id_test(self):
+        iu = IndexerUtils(self.cfg)
+        with self.assertRaises(ValueError):
+            iu._get_id('blah')
 
     @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
     @patch('IndexRunner.MethodRunner.Catalog', autospec=True)
@@ -302,6 +351,14 @@ class IndexerTester(unittest.TestCase):
         iu.process_event(ev)
         # TODO
 
+    def bogus_event_test(self):
+        # RENAME_ALL_VERSIONS,
+        ev = self.new_version_event.copy()
+        ev['evtype'] = 'BOGUS'
+        iu = IndexerUtils(self.cfg)
+        iu.process_event(ev)
+        # Basically make sure this doesn't fail with an error
+
     @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
     @patch('IndexRunner.IndexerUtils.EventProducer', autospec=True)
     def copy_event_test(self, mock_ep, mock_ws):
@@ -342,3 +399,49 @@ class IndexerTester(unittest.TestCase):
         iu.ws.list_objects.return_value = self.wslist
         iu.process_event(ev)
         iu.ep.index_objects.assert_called()
+
+    @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
+    @patch('IndexRunner.IndexerUtils.MethodRunner', autospec=True)
+    def index_raw_test(self, mock_wsa, mock_cat):
+        iu = IndexerUtils(self.cfg)
+        iu.mapping['KBaseGenomes.Genome'] = [
+            {
+                'index_method': 'bogus.genome_index',
+                'mapping_method': 'bogus.genome_mapping',
+                'raw': True,
+                'index_name': 'ciraw.sketch'
+            }
+        ]
+        map = {
+            'schema': {
+                'upa': {'type': 'string'},
+                'mash': {'type': 'binary'},
+                'timestamp': {'type': 'long'}
+            }
+        }
+        index = {
+            'data': {
+                'upa': '1/3/2',
+                'mash': 'blaslsadlfasdf',
+                'timestamp': '1234'
+            }
+        }
+        iu.mr.run.side_effect = [[map], [index]]
+        ev = self.new_version_event.copy()
+        ev['objtype'] = 'KBaseGenomes.Genome'
+        ev['objid'] = '3'
+        ev['ver'] = 2
+        self.reset()
+        iu.process_event(ev)
+        id = "WS:1:3:2"
+        res = self.es.get(index=self._iname('sketch'), doc_type='data', id=id)
+        self.assertIsNotNone(res)
+        self.assertIn('mash', res['_source'])
+        # Code path test... index and indexed object
+        iu.process_event(ev)
+        # Code path test ignore empty results
+        ev['objtype'] = 'KBaseGenomes.Genome'
+        ev['objid'] = '4'
+        ev['ver'] = 2
+        iu.mr.run.side_effect = [[{}]]
+        iu.process_event(ev)

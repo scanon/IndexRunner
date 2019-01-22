@@ -22,7 +22,7 @@ docker:
 	docker build -t kbase/indexrunner .
 
 test:
-	nosetests -s -x -v --with-coverage --cover-package=IndexRunner --cover-html --cover-html-dir=./test_coverage --nocapture  --nologcapture .
+	nosetests -s -x -v --with-coverage --cover-erase --cover-package=IndexRunner --cover-html --cover-html-dir=./test_coverage --nocapture  --nologcapture .
 
 
 clean:

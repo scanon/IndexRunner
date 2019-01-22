@@ -149,9 +149,6 @@ class IndexerUtils:
             f.write(json.dumps(mes))
             f.write('\n')
 
-    def _get_upa(self, obj):
-        return '%s/%s/%s' % (obj[6], obj[0], obj[4])
-
     def _access_rec(self, wsid, objid, vers, public=False):
         rec = {
             "extpub": [],
@@ -173,12 +170,6 @@ class IndexerUtils:
         # type": "access"
         return rec
 
-    def _get_wsid(self, upa):
-        """
-        Return the workspace id as an int from an UPA
-        """
-        return int(str(upa).split('/')[0])
-
     def _get_id(self, upa):
         """
         Return the elastic id
@@ -188,7 +179,6 @@ class IndexerUtils:
         return "WS:%s" % (upa.replace('/', ':'))
 
     def _get_prov(self, obj):
-        prov = obj['provenance'][0]
         ret = {
           "prv_mod": None,
           "prv_meth": None,
@@ -196,6 +186,9 @@ class IndexerUtils:
           "prv_cmt": None,
 
         }
+        if 'provenance' not in obj or len(obj['provenance']) == 0:
+            return ret
+        prov = obj['provenance'][0]
         if 'service' in prov:
             ret['prv_mod'] = prov['service']
 
@@ -214,25 +207,15 @@ class IndexerUtils:
             ret['prv_cmt'] = prov['description']
         return ret
 
-    def _get_es_data_record(self, index, upa):
+    def _put_es_data_record(self, index, upa, doc):
+        """
+        Add an ES data record.
+        Only works if the object hasn't been indexed before.  Will throw an
+        error if it has
+        """
         eid = self._get_id(upa)
-        res = self.es.get(index=index, routing=eid, doc_type='data', id=eid, ignore=404)
-        if not res['found']:
-            return None
-        return res
-
-    def _put_es_data_record(self, index, upa, doc, version=None, reindex=False):
-        eid = self._get_id(upa)
-        if reindex:
-            res = self.es.index(index=index, parent=eid, doc_type='data',
-                                id=eid, routing=eid, body=doc)
-        elif version is None:
-            res = self.es.create(index=index, parent=eid, doc_type='data',
-                                 id=eid, routing=eid, body=doc, refresh=True)
-        else:
-            res = self.es.index(index=index, parent=eid, doc_type='data',
-                                id=eid, routing=eid, version=version, body=doc,
-                                refresh=True)
+        res = self.es.create(index=index, parent=eid, doc_type='data',
+                             id=eid, routing=eid, body=doc, refresh=True)
         return res
 
     def _get_ws_info(self, wsid):
@@ -355,8 +338,34 @@ class IndexerUtils:
                 (module, method) = meth.split('.')
                 params = {}
                 extra = self.mr.run(module, method, params)[0]
-                schema['key'] = {'properties': extra}
+                if 'raw' in oindex and oindex['raw']:
+                    schema = {'mappings': {'data': {'properties': extra['schema']}}}
+                else:
+                    schema['mappings']['data']['properties']['key'] = \
+                        {'properties': extra['schema']}
             self.es.indices.create(index=index, body=schema)
+
+    def _new_raw_version_index(self, event, oindex):
+        upa = event['upa']
+        index = oindex['index_name']
+        self._check_mapping(oindex)
+
+        eid = self._get_id(upa)
+        res = self.es.get(index=index, doc_type='data', id=eid, ignore=404)
+        if res['found']:
+            self.log.info("%s already indexed in %s" % (eid, index))
+            return
+
+        params = {'upa': upa}
+        extra = {}
+        (module, method) = oindex['index_method'].split('.')
+        resp = self.mr.run(module, method, params)[0]
+        self.mr.cleanup()
+        if 'data' not in resp or resp['data'] is None:
+            return
+        doc = resp['data']
+        res = self.es.create(index=index, doc_type='data',
+                             id=eid, body=doc, refresh=True)
 
     def _new_object_version_index(self, event, oindex):
         wsid = event['accgrp']
@@ -390,6 +399,11 @@ class IndexerUtils:
             self._update_islast(index, wsid, objid, vers)
 
     def _new_object_version_feature_index(self, event, oindex):
+        """
+        This handles indexing features for a specific version.
+        The callout should return a structure with a 'features' that
+        is a list of dictionary keys
+        """
         wsid = event['accgrp']
         objid = event['objid']
         vers = event['ver']
@@ -466,6 +480,8 @@ class IndexerUtils:
             try:
                 if 'feature' in oindex and oindex['feature']:
                     self._new_object_version_feature_index(event, oindex)
+                elif 'raw' in oindex and oindex['raw']:
+                    self._new_raw_version_index(event, oindex)
                 else:
                     self._new_object_version_index(event, oindex)
             except Exception as e:

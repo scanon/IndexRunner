@@ -8,6 +8,7 @@ from IndexRunner.IndexerUtils import IndexerUtils
 import logging
 
 
+# TODO: Should this just be a FileHandler in in the logger
 def _log_error(event, error):
     with open('error.log', 'a') as f:
         f.write(str(event)+'\n')

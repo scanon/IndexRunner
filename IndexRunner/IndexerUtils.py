@@ -51,6 +51,7 @@ class IndexerUtils:
             token = os.environ.get('KB_AUTH_TOKEN')
         self.mr = MethodRunner(config, token=token)
         self.ep = EventProducer(config)
+        # TODO: shouldn't we uniformly use YAML?
         with open('specs/mapping.json') as f:
             d = f.read()
             self.mapping_spec = json.loads(d)
@@ -92,10 +93,12 @@ class IndexerUtils:
         List the workspace and generate an index event for each object.
         """
         min = 0
-        while (True):
-            objs = self.ws.list_objects({'ids': [wsid], 'minObjectID': min})
+        while True:
+            objs = self.ws.list_objects({'ids': [wsid],
+                                         'minObjectID': min,
+                                         'limit': _MAX_LIST})
             self.ep.index_objects(objs)
-            if (len(objs) <= _MAX_LIST):
+            if len(objs) <= _MAX_LIST:
                 break
             min = objs[-1][0] + 1
 
@@ -113,7 +116,7 @@ class IndexerUtils:
         prov = self._get_prov(obj)
 
         rec = {
-          "guid": "WS:%s" % (upa),
+          "guid": f"WS:{upa}",
           "otype": None,
           "otypever": 1,
           "stags": [],
@@ -139,6 +142,7 @@ class IndexerUtils:
 
         return rec
 
+    # TODO: should we just add an filehandler for this?
     def _log_error(self, event, index, err):
         mes = {
             'event': event,
@@ -160,8 +164,8 @@ class IndexerUtils:
                 -2,
                 wsid
             ],
-            "pguid": "WS:%s/%s/%s" % (wsid, objid, vers),
-            "prefix": "WS:%s/%s" % (wsid, objid),
+            "pguid": f"WS:{wsid}/{objid}/{vers}",
+            "prefix": f"WS:{wsid}/{objid}",
             "version": vers
         }
         if public:
@@ -174,6 +178,7 @@ class IndexerUtils:
         """
         Return the elastic id
         """
+        # TODO: Should this be stricter?
         if upa.find("/") < 0:
             raise ValueError("Not an upa")
         return "WS:%s" % (upa.replace('/', ':'))
@@ -222,13 +227,8 @@ class IndexerUtils:
         info = self.ws.get_workspace_info({'id': wsid})
         meta = info[8]
         # Don't index temporary narratives
-        temp = False
-        if meta.get('is_temporary') == 'true':
-            temp = True
-
-        public = False
-        if info[6] != 'n':
-            public = True
+        temp = (meta.get('is_temporary') == 'true')
+        public = (info[6] != 'n')
 
         # TODO
         shared = False
@@ -237,6 +237,7 @@ class IndexerUtils:
                 'temp': temp, 'public': public, 'shared': shared}
 
     def publish(self, wsid):
+        """TODO: clarify the purpose of this function"""
         # Find each index
         wsinfo = self._get_ws_info(wsid)
         public = wsinfo['public']
@@ -248,7 +249,7 @@ class IndexerUtils:
 
         aq = {
                 "query": {
-                    "prefix": {"prefix": "WS:%d/" % (wsid)}
+                    "prefix": {"prefix": f"WS:{wsid:d}/"}
                     },
                 "script": {
                     "source": script
@@ -267,7 +268,7 @@ class IndexerUtils:
         dq = {
                 "query": filt,
                 "script": {
-                    "source": "ctx._source.public=%s" % publics
+                    "source": f"ctx._source.public={publics}"
                 }
             }
         active_indexes = self._get_all_active_indexes()
@@ -321,14 +322,16 @@ class IndexerUtils:
         return res
 
     def _split_upa(self, upa):
-        return map(lambda x: int(x), upa.split('/'))
+        return [int(x) for x in upa.split('/')]
 
     def _get_indexes(self, otype):
+        # TODO: handle generics here
         if otype in self.mapping:
             return self.mapping[otype]
         return self.mapping['Other']
 
     def _check_mapping(self, oindex, objschema):
+        # TODO: isn't this more "ensure mapping exists" Not super sure of what mapping is for
         index = oindex['index_name']
         res = self.es.indices.exists(index=index)
         if not res:
@@ -341,6 +344,8 @@ class IndexerUtils:
             self.es.indices.create(index=index, body=schema)
 
     def _new_raw_version_index(self, event, oindex):
+        """This handles indexing an object where the callout is expected to
+        return an entire ElasticSearch reccord for storage"""
         upa = event['upa']
         index = oindex['index_name']
         eid = self._get_id(upa)
@@ -350,10 +355,10 @@ class IndexerUtils:
             return
 
         params = {'upa': upa}
-        extra = {}
         (module, method) = oindex['index_method'].split('.')
         resp = self.mr.run(module, method, params)[0]
         self.mr.cleanup()
+        # TODO: should this case really pass silently?
         if 'data' not in resp or resp['data'] is None:
             return
         self._check_mapping(oindex, resp['schema'])
@@ -362,6 +367,10 @@ class IndexerUtils:
                              id=eid, body=doc, refresh=True)
 
     def _new_object_version_index(self, event, oindex):
+        """
+        This handles indexing a specific object version.
+        The callout should return a structure with a 'data'
+        """
         wsid = event['accgrp']
         objid = event['objid']
         vers = event['ver']
@@ -384,19 +393,20 @@ class IndexerUtils:
             self.mr.cleanup()
             schema = extra['schema']
         self._check_mapping(oindex, schema)
-        if 'data' in extra and extra['data'] is not None:
+        # TODO: Missing "data" is probably a Warning to log at least
+        if extra.get('data') is not None:
             doc['keys'] = extra['data']
             doc['ojson'] = json.dumps(doc['keys'])
         self._update_es_access(index, wsid, objid, vers, upa)
         res = self._put_es_data_record(index, upa, doc)
-        oid = '%d/%s' % (wsid, objid)
+        oid = f'{wsid:d}/{objid}'
         info = self.ws.get_object_info3({'objects': [{'ref': oid}]})['infos'][0]
         if info[4] == vers:
             self._update_islast(index, wsid, objid, vers)
 
     def _new_object_version_multi_index(self, event, oindex):
         """
-        This handles indexing features for a specific version.
+        This handles indexing multiple sub-objects for a specific object version.
         The callout should return a structure with a 'features' that
         is a list of dictionary keys
         """
@@ -410,7 +420,7 @@ class IndexerUtils:
         eid = self._get_id(upa)
         res = self.es.get(index=index, doc_type='access', id=eid, ignore=404)
         if res.get('status') != 404 and res['found']:
-            self.log.info("%s already indexed in %s" % (eid, index))
+            self.log.info(f"{eid} already indexed in {index}")
             return
 
         doc = self._create_obj_rec(upa)
@@ -420,9 +430,9 @@ class IndexerUtils:
         self.mr.cleanup()
         parent = extra['parent']
         self._check_mapping(oindex, extra['schema'])
+        # TODO: unused, also can we switch away from the term "features"
         if 'features' in extra and extra['features'] is not None:
             features = extra['features']
-        recs = []
         doc['pjson'] = json.dumps(parent)
         pguid = self._get_id(upa)
         bdoc = []
@@ -448,7 +458,7 @@ class IndexerUtils:
             bulk(self.es, bdoc)
 
         self._update_es_access(index, wsid, objid, vers, upa)
-        oid = '%d/%s' % (wsid, objid)
+        oid = f'{wsid:d}/{objid}'
         info = self.ws.get_object_info3({'objects': [{'ref': oid}]})['infos'][0]
         if info[4] == vers:
             self._update_islast(index, wsid, objid, info[4])
@@ -464,19 +474,19 @@ class IndexerUtils:
         # For a NEW ALL VERSION we will just index the latest versions
         #
         if event['evtype'] == 'NEW_ALL_VERSIONS':
-            upa = "%s/%s" % (event['accgrp'], event['objid'])
+            upa = f"{event['accgrp']}/{event['objid']}"
             info = self.ws.get_object_info3({'objects': [{'ref': upa}]})['infos'][0]
             vers = info[4]
             event['ver'] = vers
             (event['objtype'], event['objtypever']) = info[2].split('-')
-            event['upa'] = '%s/%s' % (upa, vers)
+            event['upa'] = f'{upa}/{vers}'
 
         indexes = self._get_indexes(event['objtype'])
         for oindex in indexes:
             try:
-                if 'multi' in oindex and oindex['multi']:
+                if oindex.get('multi'):
                     self._new_object_version_multi_index(event, oindex)
-                elif 'raw' in oindex and oindex['raw']:
+                elif oindex.get('raw'):
                     self._new_raw_version_index(event, oindex)
                 else:
                     self._new_object_version_index(event, oindex)

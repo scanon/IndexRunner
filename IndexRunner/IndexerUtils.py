@@ -320,9 +320,11 @@ class IndexerUtils:
         return [int(x) for x in upa.split('/')]
 
     def _get_indexes(self, otype):
-        # TODO: handle generics here
+        generic = otype.split('.')[0] + ".*"
         if otype in self.mapping:
             return self.mapping[otype]
+        elif generic in self.mapping:
+            return self.mapping[generic]
         return self.mapping['Other']
 
     def _ensure_mapping_exists(self, oindex, objschema):

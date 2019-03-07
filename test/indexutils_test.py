@@ -87,6 +87,20 @@ class IndexerTester(unittest.TestCase):
         for index in indices:
             self.es.indices.refresh(index=self._iname(index))
 
+    def get_indexes_test(self):
+        iu = IndexerUtils(self.cfg)
+        self.assertEqual(iu._get_indexes("KBaseNarrative.Narrative"),
+                         [{'index_method': 'NarrativeIndexer.index',
+                           'index_name': 'ciraw.narrative'}]
+                         )
+        self.assertEqual(iu._get_indexes("Foo.Bar"),
+                         [{'comment': 'Everything without a specific indexer',
+                           'index_method': 'default_indexer',
+                           'index_name': 'ciraw.objects'}])
+        self.assertEqual(iu._get_indexes("KBaseMatrices.ExpressionMatrix"),
+                         [{'index_method': 'KBaseMatrices.index',
+                           'index_name': 'ciraw.KBaseMatrices'}])
+
     @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
     def skip_temp_test(self, wsa):
         iu = IndexerUtils(self.cfg)

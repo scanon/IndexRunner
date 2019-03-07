@@ -22,3 +22,8 @@ types:
          -
              index_method: NarrativeIndexer.index
              index_name: narrative
+
+    KBaseMatrices.*:
+         -
+             index_method: KBaseMatrices.index
+             index_name: KBaseMatrices

@@ -51,10 +51,9 @@ class IndexerUtils:
             token = os.environ.get('KB_AUTH_TOKEN')
         self.mr = MethodRunner(config, token=token)
         self.ep = EventProducer(config)
-        # TODO: shouldn't we uniformly use YAML?
-        with open('specs/mapping.json') as f:
-            d = f.read()
-            self.mapping_spec = json.loads(d)
+        # TODO: access and data specs are not used?
+        with open('specs/mapping.yml') as f:
+            self.mapping_spec = yaml.load(f)
 
     def _read_mapfile(self, mapfile):
         with open(mapfile) as f:

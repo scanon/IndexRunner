@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+import json
+import os
 import unittest
 from unittest.mock import patch
-import json
+
 from IndexRunner.EventProducer import EventProducer
-import os
 
 
 class EventProducerTest(unittest.TestCase):

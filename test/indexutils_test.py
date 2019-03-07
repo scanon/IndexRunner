@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
-import unittest
-from nose.plugins.attrib import attr
-
-import os  # noqa: F401
+import datetime
 import json  # noqa: F401
+import os  # noqa: F401
+import unittest
+from configparser import ConfigParser
+from os import environ
 from unittest.mock import patch, Mock
 
-from os import environ
-from configparser import ConfigParser  # py3
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
+from nose.plugins.attrib import attr
 
 from IndexRunner.IndexerUtils import IndexerUtils
-import datetime
 
 
 class IndexerTester(unittest.TestCase):

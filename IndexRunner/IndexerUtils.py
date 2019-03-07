@@ -1,16 +1,18 @@
-from IndexRunner.WSAdminUtils import WorkspaceAdminUtil
-from IndexRunner.MethodRunner import MethodRunner
-from IndexRunner.EventProducer import EventProducer
-from elasticsearch import Elasticsearch, RequestsHttpConnection
-from elasticsearch.helpers import bulk
+import json
+import logging
 import os
+import re
 import sys
 import traceback
-
 from time import time
-import json
+
 import yaml
-import logging
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
+
+from IndexRunner.EventProducer import EventProducer
+from IndexRunner.MethodRunner import MethodRunner
+from IndexRunner.WSAdminUtils import WorkspaceAdminUtil
 
 # This is the interface that will process indexing
 BULK_MAX = 9
@@ -177,10 +179,9 @@ class IndexerUtils:
         """
         Return the elastic id
         """
-        # TODO: Should this be stricter?
-        if upa.find("/") < 0:
-            raise ValueError("Not an upa")
-        return "WS:%s" % (upa.replace('/', ':'))
+        if not re.match('^\d+\/\d+\/\d+$', upa):
+            raise ValueError(f"'{upa}' is not an upa")
+        return f"WS:{upa.replace('/', ':')}"
 
     def _get_prov(self, obj):
         ret = {
@@ -236,7 +237,7 @@ class IndexerUtils:
                 'temp': temp, 'public': public, 'shared': shared}
 
     def publish(self, wsid):
-        """TODO: clarify the purpose of this function"""
+        """This updates the visibility of objects when a workspace is made public"""
         # Find each index
         wsinfo = self._get_ws_info(wsid)
         public = wsinfo['public']
@@ -272,22 +273,18 @@ class IndexerUtils:
             }
         active_indexes = self._get_all_active_indexes()
         for index in active_indexes:
-            res = self.es.update_by_query(index=index, doc_type='access',
-                                          body=aq, ignore=[400, 404],
-                                          refresh=True)
-            res = self.es.update_by_query(index=index, doc_type='data',
-                                          body=dq, ignore=[400, 404],
-                                          refresh=True)
+            self.es.update_by_query(index=index, doc_type='access',
+                                    body=aq, ignore=[400, 404],
+                                    refresh=True)
+            self.es.update_by_query(index=index, doc_type='data',
+                                    body=dq, ignore=[400, 404],
+                                    refresh=True)
 
     def _get_all_active_indexes(self):
-        indexes = []
-        for oindex in self.mapping:
-            for index in self.mapping[oindex]:
-                indexes.append(index['index_name'])
-        index_list = ','.join(indexes)
-        active_indexes = self.es.indices.get(index_list, ignore_unavailable=True)
-
-        return active_indexes
+        indexes = (index['index_name']
+                   for oindex in self.mapping
+                   for index in self.mapping[oindex])
+        return self.es.indices.get(','.join(indexes), ignore_unavailable=True)
 
     def delete(self, event):
         # Find each index
@@ -302,9 +299,8 @@ class IndexerUtils:
             }
         }
         for index in active_indexes:
-            res = self.es.delete_by_query(index=index, doc_type='data',
-                                          routing=id, body=q, ignore=[400, 404],
-                                          refresh=True)
+            self.es.delete_by_query(index=index, doc_type='data', routing=id,
+                                    body=q, ignore=[400, 404], refresh=True)
             self.es.delete(index=index, doc_type='access', id=id, ignore=404,
                            refresh=True)
 
@@ -329,13 +325,13 @@ class IndexerUtils:
             return self.mapping[otype]
         return self.mapping['Other']
 
-    def _check_mapping(self, oindex, objschema):
-        # TODO: isn't this more "ensure mapping exists" Not super sure of what mapping is for
+    def _ensure_mapping_exists(self, oindex, objschema):
+        """Ensures a mapping exists in ES for 'index_name'"""
         index = oindex['index_name']
         res = self.es.indices.exists(index=index)
         if not res:
             schema = self.mapping_spec
-            if 'raw' in oindex and oindex['raw']:
+            if oindex.get('raw'):
                 schema = {'mappings': {'data': {'properties': objschema}}}
             elif objschema is not None:
                 schema['mappings']['data']['properties']['key'] = \
@@ -357,13 +353,11 @@ class IndexerUtils:
         (module, method) = oindex['index_method'].split('.')
         resp = self.mr.run(module, method, params)[0]
         self.mr.cleanup()
-        # TODO: should this case really pass silently?
-        if 'data' not in resp or resp['data'] is None:
-            return
-        self._check_mapping(oindex, resp['schema'])
+        if resp.get('data') is None:
+            raise ValueError(f"{oindex['index_method']} did not return 'data' for {event}")
+        self._ensure_mapping_exists(oindex, resp['schema'])
         doc = resp['data']
-        res = self.es.create(index=index, doc_type='data',
-                             id=eid, body=doc, refresh=True)
+        self.es.create(index=index, doc_type='data', id=eid, body=doc, refresh=True)
 
     def _new_object_version_index(self, event, oindex):
         """
@@ -391,13 +385,14 @@ class IndexerUtils:
             extra = self.mr.run(module, method, params)[0]
             self.mr.cleanup()
             schema = extra['schema']
-        self._check_mapping(oindex, schema)
-        # TODO: Missing "data" is probably a Warning to log at least
+        self._ensure_mapping_exists(oindex, schema)
         if extra.get('data') is not None:
             doc['keys'] = extra['data']
             doc['ojson'] = json.dumps(doc['keys'])
+        else:
+            self.log.warning(f"{oindex['index_method']} did not return 'data' for {event}")
         self._update_es_access(index, wsid, objid, vers, upa)
-        res = self._put_es_data_record(index, upa, doc)
+        self._put_es_data_record(index, upa, doc)
         oid = f'{wsid:d}/{objid}'
         info = self.ws.get_object_info3({'objects': [{'ref': oid}]})['infos'][0]
         if info[4] == vers:
@@ -428,10 +423,7 @@ class IndexerUtils:
         extra = self.mr.run(module, method, params)[0]
         self.mr.cleanup()
         parent = extra['parent']
-        self._check_mapping(oindex, extra['schema'])
-        # TODO: unused, also can we switch away from the term "features"
-        if 'features' in extra and extra['features'] is not None:
-            features = extra['features']
+        self._ensure_mapping_exists(oindex, extra['schema'])
         doc['pjson'] = json.dumps(parent)
         pguid = self._get_id(upa)
         bdoc = []
@@ -467,7 +459,7 @@ class IndexerUtils:
         doc = {"query": {"bool": {"filter": [{"term": {"prefix": prefix}}]}},
                "script": {"source": "ctx._source.islast = (ctx._source.version == params.lastver)",
                           "params": {"lastver": int(vers)}}}
-        res = self.es.update_by_query(index, 'data', doc, refresh=True)
+        self.es.update_by_query(index, 'data', doc, refresh=True)
 
     def new_object_version(self, event):
         # For a NEW ALL VERSION we will just index the latest versions

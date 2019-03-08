@@ -63,7 +63,7 @@ class IndexerTester(unittest.TestCase):
             try:
                 if self.es.indices.exists(index=self._iname(i)):
                     self.es.indices.delete(index=self._iname(i))
-            except:
+            except Exception:
                 pass
 
     def _iname(self, index):
@@ -135,7 +135,7 @@ class IndexerTester(unittest.TestCase):
     def get_id_test(self):
         iu = IndexerUtils(self.cfg)
         with self.assertRaises(ValueError):
-            iu._get_id('blah')
+            iu._get_es_id('blah')
 
     @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
     @patch('IndexRunner.MethodRunner.Catalog', autospec=True)
@@ -254,6 +254,7 @@ class IndexerTester(unittest.TestCase):
         if os.path.exists('error.log'):
             os.remove('error.log')
         iu._new_object_version_index = Mock(side_effect=KeyError())
+        # TODO there is no method in IndexerUtils called '_new_object_version_feature_index'
         iu._new_object_version_feature_index = Mock(side_effect=KeyError())
         ev = self.new_version_event.copy()
         iu.process_event(ev)

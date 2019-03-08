@@ -15,7 +15,7 @@ export KB_DEPLOYMENT_CONFIG=test.cfg
 
 ## Setup and test
 
-Start Kafka and Elastic
+1: Start Kafka and Elastic
 
 ```
 docker run -d --name es5 -v es5:/usr/share/elasticsearch/data/ -e "xpack.security.enabled=false" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m"  -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:5.6.9
@@ -27,13 +27,28 @@ docker run -d --name=kafka --link zookeeper -p 9092:9092 -e KAFKA_ZOOKEEPER_CONN
 
 ```
 
-## Building Mock Image
+2: Building Mock Image
 
 ```
 cd test/mock_indexer
 docker build -t mock_indexer .
 ```
 
+3: Setup virtualenv
+
+```
+virtualenv IndexRunner_venv
+source IndexRunner_venv/bin/activate
+pip install -r requirements.txt
+```
+
+4: Run tests
+
+```
+export KB_DEPLOYMENT_CONFIG=test.cfg
+export KB_AUTH_TOKEN=bogus
+make test
+```
 
 # Notes
 

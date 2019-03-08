@@ -32,7 +32,7 @@ class MethodRunner:
         self.token = token
         if 'workspace-admin-token' in self.config:
             self.token = self.config['workspace-admin-token']
-        self.dirs = []
+        self.dirs = []  # type: list
         self.log = logging.getLogger('indexrunner')
 
     def _create_config_properties(self):
@@ -138,10 +138,10 @@ class MethodRunner:
             for f in ['token', 'config.properties', 'input.json', 'output.json']:
                 try:
                     os.remove(d+'/'+f)
-                except:
+                except Exception:
                     continue
             try:
                 os.removedirs(d)
-            except:
+            except Exception:
                 continue
-        self.dirs = []
+        self.dirs = []  # type: list

@@ -1,7 +1,7 @@
 from IndexRunner.WSAdminUtils import WorkspaceAdminUtil
 from IndexRunner.MethodRunner import MethodRunner
 from IndexRunner.EventProducer import EventProducer
-from elasticsearch import Elasticsearch, RequestsHttpConnection
+from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 import os
 import sys
@@ -17,24 +17,26 @@ BULK_MAX = 9
 _MAX_LIST = 10000
 
 
-class IndexerUtils:
-    add_template = """
-        if (ctx._source.lastin.indexOf({grp}) < 0) {{
-            ctx._source.lastin.add({grp});
-        }}
-        if (ctx._source.groups.indexOf({grp}) < 0) {{
-          ctx._source.groups.add({grp});
-        }}
-        """
+_ADD_TEMPLATE = """
+if (ctx._source.lastin.indexOf({grp}) < 0) {{
+    ctx._source.lastin.add({grp});
+}}
+if (ctx._source.groups.indexOf({grp}) < 0) {{
+  ctx._source.groups.add({grp});
+}}
+"""
 
-    del_template = """
-        if (ctx._source.lastin.indexOf({grp}) >= 0) {{
-          ctx._source.lastin.remove(ctx._source.lastin.indexOf({grp}));
-        }}
-        if (ctx._source.groups.indexOf({grp}) >= 0) {{
-          ctx._source.groups.remove(ctx._source.groups.indexOf({grp}));
-        }}
-        """
+_DEL_TEMPLATE = """
+if (ctx._source.lastin.indexOf({grp}) >= 0) {{
+  ctx._source.lastin.remove(ctx._source.lastin.indexOf({grp}));
+}}
+if (ctx._source.groups.indexOf({grp}) >= 0) {{
+  ctx._source.groups.remove(ctx._source.groups.indexOf({grp}));
+}}
+"""
+
+
+class IndexerUtils:
 
     def __init__(self, config):
         self.log = logging.getLogger('indexrunner')
@@ -45,31 +47,29 @@ class IndexerUtils:
         self.log.info("Mapping File: %s" % (mapfile))
         self.mapping = self._read_mapfile(mapfile)
 
-        if 'workspace-admin-token' in config:
+        if config.get('workspace-admin-token'):
             token = config['workspace-admin-token']
         else:
             token = os.environ.get('KB_AUTH_TOKEN')
         self.mr = MethodRunner(config, token=token)
         self.ep = EventProducer(config)
-        with open('specs/mapping.json') as f:
-            d = f.read()
-            self.mapping_spec = json.loads(d)
+        with open('specs/mapping.json') as fd:
+            self.mapping_spec = json.load(fd)
 
     def _read_mapfile(self, mapfile):
         with open(mapfile) as f:
             d = f.read()
         mapping = yaml.load(d)['types']
-        for type in mapping.keys():
-            for index in mapping[type]:
+        for typ in mapping.keys():
+            for index in mapping[typ]:
                 name = index['index_name']
                 index['index_name'] = '%s.%s' % (self.esbase, name)
         return mapping
 
     def process_event(self, evt):
-
         etype = evt['evtype']
         ws = evt['accgrp']
-        if evt['ver']:
+        if evt.get('ver'):
             evt['upa'] = '%d/%s/%d' % (evt['accgrp'], evt['objid'], evt['ver'])
         if etype in ['NEW_VERSION', 'NEW_ALL_VERSIONS']:
             self.new_object_version(evt)
@@ -91,28 +91,25 @@ class IndexerUtils:
         """
         List the workspace and generate an index event for each object.
         """
-        min = 0
-        while (True):
-            objs = self.ws.list_objects({'ids': [wsid], 'minObjectID': min})
+        minimum = 0
+        while True:
+            objs = self.ws.list_objects({'ids': [wsid], 'minObjectID': minimum})
             self.ep.index_objects(objs)
             if (len(objs) <= _MAX_LIST):
                 break
-            min = objs[-1][0] + 1
+            minimum = objs[-1][0] + 1
 
     def _create_obj_rec(self, upa):
         (wsid, objid, vers) = self._split_upa(upa)
-        req = {'objects': [{'ref': upa}], 'no_data': 1}
-        obj = self.ws.get_objects2(req)['data'][0]
-        info = obj['info']
-
         wsinfo = self._get_ws_info(wsid)
         # Don't index temporary narratives
         if wsinfo['temp']:
             return None
-
+        req = {'objects': [{'ref': upa}], 'no_data': 1}
+        obj = self.ws.get_objects2(req)['data'][0]
+        info = obj['info']
         prov = self._get_prov(obj)
-
-        rec = {
+        return {
           "guid": "WS:%s" % (upa),
           "otype": None,
           "otypever": 1,
@@ -135,9 +132,7 @@ class IndexerUtils:
           "shared": wsinfo['shared'],
           "ojson": "{}",
           "pjson": None
-          }
-
-        return rec
+        }
 
     def _log_error(self, event, index, err):
         mes = {
@@ -170,69 +165,58 @@ class IndexerUtils:
         # type": "access"
         return rec
 
-    def _get_id(self, upa):
+    def _get_es_id(self, upa):
         """
-        Return the elastic id
+        Return the UPA of an object as an elastic id (with colon delimiters)
         """
         if upa.find("/") < 0:
             raise ValueError("Not an upa")
         return "WS:%s" % (upa.replace('/', ':'))
 
     def _get_prov(self, obj):
-        ret = {
-          "prv_mod": None,
-          "prv_meth": None,
-          "prv_ver": None,
-          "prv_cmt": None,
-
-        }
-        if 'provenance' not in obj or len(obj['provenance']) == 0:
-            return ret
+        """
+        Fetch provenance data from an object returned by get_objects2.
+        Returns a dictionary of module, method, version, and comment.
+        """
+        if not obj.get('provenance'):  # must be non-empty list
+            return None
         prov = obj['provenance'][0]
-        if 'service' in prov:
-            ret['prv_mod'] = prov['service']
-
-        if 'method' in prov:
-            ret['prv_meth'] = prov['method']
+        ret = {
+          "prv_mod": prov.get('service'),
+          "prv_meth": prov.get('method'),
+          "prv_ver": prov.get('service_ver'),
+          "prv_cmt": prov.get('description')
+        }
         if 'script' in prov:
             ret['prv_mod'] = 'legacy_transform'
             ret['prv_meth'] = prov['script']
-
-        if 'service_ver' in prov:
-            ret['prv_ver'] = prov['service_ver']
-        elif 'script_ver' in prov:
-            ret['prv_ver'] = prov['script_ver']
-
-        if 'description' in prov:
-            ret['prv_cmt'] = prov['description']
+            ret['prv_ver'] = prov.get('script_ver')
         return ret
 
     def _put_es_data_record(self, index, upa, doc):
         """
         Add an ES data record.
         Only works if the object hasn't been indexed before.  Will throw an
-        error if it has
+        error if it has been indexed already.
         """
-        eid = self._get_id(upa)
+        eid = self._get_es_id(upa)
         res = self.es.create(index=index, parent=eid, doc_type='data',
                              id=eid, routing=eid, body=doc, refresh=True)
         return res
 
     def _get_ws_info(self, wsid):
+        """
+        Fetch workspace the info tuple
+        https://kbase.us/services/ws/docs/Workspace.html#typedefWorkspace.workspace_info
+        """
         info = self.ws.get_workspace_info({'id': wsid})
         meta = info[8]
         # Don't index temporary narratives
-        temp = False
-        if meta.get('is_temporary') == 'true':
-            temp = True
-
-        public = False
-        if info[6] != 'n':
-            public = True
-
+        temp = meta.get('is_temporary') == 'true'
+        public = info[6] != 'n'
+        public = info[6] != 'n'
         # TODO
         shared = False
-
         return {'wsid': wsid, 'info': info, 'meta': meta,
                 'temp': temp, 'public': public, 'shared': shared}
 
@@ -242,42 +226,42 @@ class IndexerUtils:
         public = wsinfo['public']
 
         if public:
-            script = self.add_template.format(grp="-1")
+            script = _ADD_TEMPLATE.format(grp="-1")
         else:
-            script = self.del_template.format(grp="-1")
+            script = _DEL_TEMPLATE.format(grp="-1")
 
         aq = {
-                "query": {
-                    "prefix": {"prefix": "WS:%d/" % (wsid)}
-                    },
-                "script": {
-                    "source": script
-                }
+            "query": {
+                "prefix": {"prefix": "WS:%d/" % (wsid)}
+            },
+            "script": {
+                "source": script
             }
+        }
 
-        filt = {"bool": {
-                    "filter": [
-                        {"term": {"public": not public}},
-                        {"term": {"accgrp": wsid}}
-                    ]
-                }}
-        publics = "false"
-        if public:
-            publics = "true"
-        dq = {
-                "query": filt,
-                "script": {
-                    "source": "ctx._source.public=%s" % publics
-                }
+        filt = {
+            "bool": {
+                "filter": [
+                    {"term": {"public": not public}},
+                    {"term": {"accgrp": wsid}}
+                ]
             }
+        }
+        publics = "true" if public else "false"
+        dq = {
+            "query": filt,
+            "script": {
+                "source": "ctx._source.public=%s" % publics
+            }
+        }
         active_indexes = self._get_all_active_indexes()
         for index in active_indexes:
-            res = self.es.update_by_query(index=index, doc_type='access',
-                                          body=aq, ignore=[400, 404],
-                                          refresh=True)
-            res = self.es.update_by_query(index=index, doc_type='data',
-                                          body=dq, ignore=[400, 404],
-                                          refresh=True)
+            self.es.update_by_query(index=index, doc_type='access',
+                                    body=aq, ignore=[400, 404],
+                                    refresh=True)
+            self.es.update_by_query(index=index, doc_type='data',
+                                    body=dq, ignore=[400, 404],
+                                    refresh=True)
 
     def _get_all_active_indexes(self):
         indexes = []
@@ -286,25 +270,24 @@ class IndexerUtils:
                 indexes.append(index['index_name'])
         index_list = ','.join(indexes)
         active_indexes = self.es.indices.get(index_list, ignore_unavailable=True)
-
         return active_indexes
 
     def delete(self, event):
         # Find each index
-        id = self._get_id(event['upa'])
+        es_id = self._get_es_id(event['upa'])
         active_indexes = self._get_all_active_indexes()
         q = {
             'query': {
                 'parent_id': {
                     'type': 'data',
-                    'id': id
+                    'id': es_id
                 }
             }
         }
         for index in active_indexes:
-            res = self.es.delete_by_query(index=index, doc_type='data',
-                                          routing=id, body=q, ignore=[400, 404],
-                                          refresh=True)
+            self.es.delete_by_query(index=index, doc_type='data',
+                                    routing=id, body=q, ignore=[400, 404],
+                                    refresh=True)
             self.es.delete(index=index, doc_type='access', id=id, ignore=404,
                            refresh=True)
 
@@ -315,9 +298,8 @@ class IndexerUtils:
             return None
         public = wsinfo['public']
         doc = self._access_rec(wsid, objid, vers, public=public)
-        eid = self._get_id(upa)
-        res = self.es.index(index=index, doc_type='access', id=eid, body=doc,
-                            refresh=True)
+        eid = self._get_es_id(upa)
+        res = self.es.index(index=index, doc_type='access', id=eid, body=doc, refresh=True)
         return res
 
     def _split_upa(self, upa):
@@ -333,7 +315,7 @@ class IndexerUtils:
         res = self.es.indices.exists(index=index)
         if not res:
             schema = self.mapping_spec
-            if 'raw' in oindex and oindex['raw']:
+            if oindex.get('raw'):
                 schema = {'mappings': {'data': {'properties': objschema}}}
             elif objschema is not None:
                 schema['mappings']['data']['properties']['key'] = \
@@ -343,14 +325,13 @@ class IndexerUtils:
     def _new_raw_version_index(self, event, oindex):
         upa = event['upa']
         index = oindex['index_name']
-        eid = self._get_id(upa)
+        eid = self._get_es_id(upa)
         res = self.es.get(index=index, doc_type='data', id=eid, ignore=404)
         if res.get('status') != 404 and res['found']:
             self.log.info("%s already indexed in %s" % (eid, index))
             return
 
         params = {'upa': upa}
-        extra = {}
         (module, method) = oindex['index_method'].split('.')
         resp = self.mr.run(module, method, params)[0]
         self.mr.cleanup()
@@ -368,7 +349,7 @@ class IndexerUtils:
         upa = event['upa']
         index = oindex['index_name']
 
-        eid = self._get_id(upa)
+        eid = self._get_es_id(upa)
         res = self.es.get(index=index, doc_type='access', id=eid, ignore=404)
         if res.get('status') != 404 and res['found']:
             self.log.info("%s already indexed in %s" % (eid, index))
@@ -376,7 +357,7 @@ class IndexerUtils:
 
         doc = self._create_obj_rec(upa)
         params = {'upa': upa}
-        extra = {}
+        extra = {}  # type: dict
         schema = None
         if 'default_indexer' not in oindex['index_method']:
             (module, method) = oindex['index_method'].split('.')
@@ -407,7 +388,7 @@ class IndexerUtils:
         index = oindex['index_name']
 
         # Check if any exists
-        eid = self._get_id(upa)
+        eid = self._get_es_id(upa)
         res = self.es.get(index=index, doc_type='access', id=eid, ignore=404)
         if res.get('status') != 404 and res['found']:
             self.log.info("%s already indexed in %s" % (eid, index))
@@ -420,11 +401,8 @@ class IndexerUtils:
         self.mr.cleanup()
         parent = extra['parent']
         self._check_mapping(oindex, extra['schema'])
-        if 'features' in extra and extra['features'] is not None:
-            features = extra['features']
-        recs = []
         doc['pjson'] = json.dumps(parent)
-        pguid = self._get_id(upa)
+        pguid = self._get_es_id(upa)
         bdoc = []
         ct = 0
         for row in extra['features']:
@@ -458,7 +436,7 @@ class IndexerUtils:
         doc = {"query": {"bool": {"filter": [{"term": {"prefix": prefix}}]}},
                "script": {"source": "ctx._source.islast = (ctx._source.version == params.lastver)",
                           "params": {"lastver": int(vers)}}}
-        res = self.es.update_by_query(index, 'data', doc, refresh=True)
+        self.es.update_by_query(index, 'data', doc, refresh=True)
 
     def new_object_version(self, event):
         # For a NEW ALL VERSION we will just index the latest versions

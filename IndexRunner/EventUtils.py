@@ -19,12 +19,9 @@ def kafka_watcher(config):
     indexer_topic = config.get('kafka-index-topic', 'idxevents')
     server = config.get('kafka-server', 'kafka')
     cgroup = config.get('kafka-clientgroup', 'search_indexer')
-    config = config
     log = logging.getLogger('indexrunner')
     log.info("Initializing EventHandler")
-    run_one = False
-    if 'run_one' in config:
-        run_one = True
+    run_one = 'run_one' in config
     indexer = IndexerUtils(config)
     c = Consumer({
         'bootstrap.servers': server,
@@ -46,6 +43,7 @@ def kafka_watcher(config):
         if msg is None:
             pass
         elif msg.error():
+            # TODO need comment - why ignore this error?
             if msg.error().code() != KafkaError._PARTITION_EOF:
                 err = str(msg.error())
                 _log_error('', err)

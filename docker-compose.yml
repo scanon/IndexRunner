@@ -1,5 +1,7 @@
-version: '2'
+version: '3'
+
 services:
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:5.6.9
     volumes:
@@ -10,7 +12,10 @@ services:
       - discovery.type=single-node
     ports:
       - "9201:9200"
-    mem_limit: 570000000
+    deploy:
+      resources:
+        limits:
+          memory: 570M
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -37,7 +42,10 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 
       KAFKA_HEAP_OPTS: "-Xmx512m -Xms512m"
-    mem_limit: 550000000
+    deploy:
+      resources:
+        limits:
+          memory: 550M
 
   indexrunner:
     image: kbase/indexrunner
@@ -66,10 +74,6 @@ services:
       workspace_admin_token: ${CI_ADMIN_TOK}
     tty: True
     entrypoint: /bin/bash
-
-volumes:
-  es5test:
-
 
 volumes:
   es5test:

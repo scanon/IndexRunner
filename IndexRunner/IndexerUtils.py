@@ -340,6 +340,20 @@ class IndexerUtils:
                     {'properties': objschema}
             self.es.indices.create(index=index, body=schema)
 
+    def _run_module(self, oindex, upa):
+        params = {'upa': upa}
+        (module, method) = oindex['index_method'].split('.')
+        resp = self.mr.run(module, method, params)[0]
+        self.mr.cleanup()
+        return resp
+
+    def _update_islast(self, index, wsid, objid, vers):
+        prefix = "WS:%d/%s" % (wsid, objid)
+        doc = {"query": {"bool": {"filter": [{"term": {"prefix": prefix}}]}},
+               "script": {"source": "ctx._source.islast = (ctx._source.version == params.lastver)",
+                          "params": {"lastver": int(vers)}}}
+        self.es.update_by_query(index, 'data', doc, refresh=True)
+
     def _new_raw_version_index(self, event, oindex):
         """This handles indexing an object where the callout is expected to
         return an entire ElasticSearch reccord for storage"""
@@ -351,10 +365,7 @@ class IndexerUtils:
             self.log.info("%s already indexed in %s" % (eid, index))
             return
 
-        params = {'upa': upa}
-        (module, method) = oindex['index_method'].split('.')
-        resp = self.mr.run(module, method, params)[0]
-        self.mr.cleanup()
+        resp = self._run_module(oindex, upa)
         if resp.get('data') is None:
             raise ValueError(f"{oindex['index_method']} did not return 'data' for {event}")
         self._ensure_mapping_exists(oindex, resp['schema'])
@@ -379,15 +390,10 @@ class IndexerUtils:
             return
 
         doc = self._create_obj_rec(upa)
-        params = {'upa': upa}
         extra = {}
-        schema = None
         if 'default_indexer' not in oindex['index_method']:
-            (module, method) = oindex['index_method'].split('.')
-            extra = self.mr.run(module, method, params)[0]
-            self.mr.cleanup()
-            schema = extra['schema']
-        self._ensure_mapping_exists(oindex, schema)
+            extra = self._run_module(oindex, upa)
+        self._ensure_mapping_exists(oindex, extra.get('schema'))
         if extra.get('data') is not None:
             doc['keys'] = extra['data']
             doc['ojson'] = json.dumps(doc['keys'])
@@ -420,17 +426,14 @@ class IndexerUtils:
             return
 
         doc = self._create_obj_rec(upa)
-        params = {'upa': upa}
-        (module, method) = oindex['index_method'].split('.')
-        extra = self.mr.run(module, method, params)[0]
-        self.mr.cleanup()
+        extra = self._run_module(oindex, upa)
         parent = extra['parent']
         self._ensure_mapping_exists(oindex, extra['schema'])
         doc['pjson'] = json.dumps(parent)
         pguid = self._get_id(upa)
         bdoc = []
         ct = 0
-        for row in extra['features']:
+        for row in extra['documents']:
             doc['keys'] = {**parent, **row}
             guid = row.pop('guid')
             if not guid.startswith('WS:'):
@@ -455,13 +458,6 @@ class IndexerUtils:
         info = self.ws.get_object_info3({'objects': [{'ref': oid}]})['infos'][0]
         if info[4] == vers:
             self._update_islast(index, wsid, objid, info[4])
-
-    def _update_islast(self, index, wsid, objid, vers):
-        prefix = "WS:%d/%s" % (wsid, objid)
-        doc = {"query": {"bool": {"filter": [{"term": {"prefix": prefix}}]}},
-               "script": {"source": "ctx._source.islast = (ctx._source.version == params.lastver)",
-                          "params": {"lastver": int(vers)}}}
-        self.es.update_by_query(index, 'data', doc, refresh=True)
 
     def new_object_version(self, event):
         # For a NEW ALL VERSION we will just index the latest versions

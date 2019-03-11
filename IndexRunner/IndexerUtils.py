@@ -68,13 +68,13 @@ class IndexerUtils:
     def process_event(self, evt):
 
         etype = evt['evtype']
-        ws = evt['accgrp']
+        ws = evt['wsid']
         if evt['ver']:
-            evt['upa'] = '%d/%s/%d' % (evt['accgrp'], evt['objid'], evt['ver'])
+            evt['upa'] = '%d/%s/%d' % (evt['wsid'], evt['objid'], evt['ver'])
         if etype in ['NEW_VERSION', 'NEW_ALL_VERSIONS']:
             self.new_object_version(evt)
         elif 'PUBLISH' in etype:
-            self.publish(evt['accgrp'])
+            self.publish(evt['wsid'])
         elif etype.startswith('DELETE_'):
             self.delete(evt)
         elif etype == 'COPY_ACCESS_GROUP':
@@ -362,7 +362,7 @@ class IndexerUtils:
                              id=eid, body=doc, refresh=True)
 
     def _new_object_version_index(self, event, oindex):
-        wsid = event['accgrp']
+        wsid = event['wsid']
         objid = event['objid']
         vers = event['ver']
         upa = event['upa']
@@ -400,7 +400,7 @@ class IndexerUtils:
         The callout should return a structure with a 'features' that
         is a list of dictionary keys
         """
-        wsid = event['accgrp']
+        wsid = event['wsid']
         objid = event['objid']
         vers = event['ver']
         upa = event['upa']
@@ -464,7 +464,7 @@ class IndexerUtils:
         # For a NEW ALL VERSION we will just index the latest versions
         #
         if event['evtype'] == 'NEW_ALL_VERSIONS':
-            upa = "%s/%s" % (event['accgrp'], event['objid'])
+            upa = "%s/%s" % (event['wsid'], event['objid'])
             info = self.ws.get_object_info3({'objects': [{'ref': upa}]})['infos'][0]
             vers = info[4]
             event['ver'] = vers

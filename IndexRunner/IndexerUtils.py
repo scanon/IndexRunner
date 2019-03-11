@@ -1,16 +1,18 @@
-from IndexRunner.WSAdminUtils import WorkspaceAdminUtil
-from IndexRunner.MethodRunner import MethodRunner
-from IndexRunner.EventProducer import EventProducer
-from elasticsearch import Elasticsearch, RequestsHttpConnection
-from elasticsearch.helpers import bulk
+import json
+import logging
 import os
+import re
 import sys
 import traceback
-
 from time import time
-import json
+
 import yaml
-import logging
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
+
+from IndexRunner.EventProducer import EventProducer
+from IndexRunner.MethodRunner import MethodRunner
+from IndexRunner.WSAdminUtils import WorkspaceAdminUtil
 
 # This is the interface that will process indexing
 BULK_MAX = 9
@@ -51,9 +53,9 @@ class IndexerUtils:
             token = os.environ.get('KB_AUTH_TOKEN')
         self.mr = MethodRunner(config, token=token)
         self.ep = EventProducer(config)
-        with open('specs/mapping.json') as f:
-            d = f.read()
-            self.mapping_spec = json.loads(d)
+        # TODO: access and data specs are not used?
+        with open('specs/mapping.yml') as f:
+            self.mapping_spec = yaml.load(f)
 
     def _read_mapfile(self, mapfile):
         with open(mapfile) as f:
@@ -92,10 +94,12 @@ class IndexerUtils:
         List the workspace and generate an index event for each object.
         """
         min = 0
-        while (True):
-            objs = self.ws.list_objects({'ids': [wsid], 'minObjectID': min})
+        while True:
+            objs = self.ws.list_objects({'ids': [wsid],
+                                         'minObjectID': min,
+                                         'limit': _MAX_LIST})
             self.ep.index_objects(objs)
-            if (len(objs) <= _MAX_LIST):
+            if len(objs) <= _MAX_LIST:
                 break
             min = objs[-1][0] + 1
 
@@ -113,7 +117,7 @@ class IndexerUtils:
         prov = self._get_prov(obj)
 
         rec = {
-          "guid": "WS:%s" % (upa),
+          "guid": f"WS:{upa}",
           "otype": None,
           "otypever": 1,
           "stags": [],
@@ -139,6 +143,7 @@ class IndexerUtils:
 
         return rec
 
+    # TODO: should we just add an filehandler for this?
     def _log_error(self, event, index, err):
         mes = {
             'event': event,
@@ -160,8 +165,8 @@ class IndexerUtils:
                 -2,
                 wsid
             ],
-            "pguid": "WS:%s/%s/%s" % (wsid, objid, vers),
-            "prefix": "WS:%s/%s" % (wsid, objid),
+            "pguid": f"WS:{wsid}/{objid}/{vers}",
+            "prefix": f"WS:{wsid}/{objid}",
             "version": vers
         }
         if public:
@@ -174,9 +179,9 @@ class IndexerUtils:
         """
         Return the elastic id
         """
-        if upa.find("/") < 0:
-            raise ValueError("Not an upa")
-        return "WS:%s" % (upa.replace('/', ':'))
+        if not re.match('^\d+\/\d+\/\d+$', upa):
+            raise ValueError(f"'{upa}' is not an upa")
+        return f"WS:{upa.replace('/', ':')}"
 
     def _get_prov(self, obj):
         ret = {
@@ -222,13 +227,8 @@ class IndexerUtils:
         info = self.ws.get_workspace_info({'id': wsid})
         meta = info[8]
         # Don't index temporary narratives
-        temp = False
-        if meta.get('is_temporary') == 'true':
-            temp = True
-
-        public = False
-        if info[6] != 'n':
-            public = True
+        temp = (meta.get('is_temporary') == 'true')
+        public = (info[6] != 'n')
 
         # TODO
         shared = False
@@ -237,6 +237,7 @@ class IndexerUtils:
                 'temp': temp, 'public': public, 'shared': shared}
 
     def publish(self, wsid):
+        """This updates the visibility of objects when a workspace is made public"""
         # Find each index
         wsinfo = self._get_ws_info(wsid)
         public = wsinfo['public']
@@ -248,7 +249,7 @@ class IndexerUtils:
 
         aq = {
                 "query": {
-                    "prefix": {"prefix": "WS:%d/" % (wsid)}
+                    "prefix": {"prefix": f"WS:{wsid:d}/"}
                     },
                 "script": {
                     "source": script
@@ -267,27 +268,23 @@ class IndexerUtils:
         dq = {
                 "query": filt,
                 "script": {
-                    "source": "ctx._source.public=%s" % publics
+                    "source": f"ctx._source.public={publics}"
                 }
             }
         active_indexes = self._get_all_active_indexes()
         for index in active_indexes:
-            res = self.es.update_by_query(index=index, doc_type='access',
-                                          body=aq, ignore=[400, 404],
-                                          refresh=True)
-            res = self.es.update_by_query(index=index, doc_type='data',
-                                          body=dq, ignore=[400, 404],
-                                          refresh=True)
+            self.es.update_by_query(index=index, doc_type='access',
+                                    body=aq, ignore=[400, 404],
+                                    refresh=True)
+            self.es.update_by_query(index=index, doc_type='data',
+                                    body=dq, ignore=[400, 404],
+                                    refresh=True)
 
     def _get_all_active_indexes(self):
-        indexes = []
-        for oindex in self.mapping:
-            for index in self.mapping[oindex]:
-                indexes.append(index['index_name'])
-        index_list = ','.join(indexes)
-        active_indexes = self.es.indices.get(index_list, ignore_unavailable=True)
-
-        return active_indexes
+        indexes = (index['index_name']
+                   for oindex in self.mapping
+                   for index in self.mapping[oindex])
+        return self.es.indices.get(','.join(indexes), ignore_unavailable=True)
 
     def delete(self, event):
         # Find each index
@@ -302,9 +299,8 @@ class IndexerUtils:
             }
         }
         for index in active_indexes:
-            res = self.es.delete_by_query(index=index, doc_type='data',
-                                          routing=id, body=q, ignore=[400, 404],
-                                          refresh=True)
+            self.es.delete_by_query(index=index, doc_type='data', routing=id,
+                                    body=q, ignore=[400, 404], refresh=True)
             self.es.delete(index=index, doc_type='access', id=id, ignore=404,
                            refresh=True)
 
@@ -321,19 +317,21 @@ class IndexerUtils:
         return res
 
     def _split_upa(self, upa):
-        return map(lambda x: int(x), upa.split('/'))
+        return [int(x) for x in upa.split('/')]
 
     def _get_indexes(self, otype):
+        # TODO: handle generics here
         if otype in self.mapping:
             return self.mapping[otype]
         return self.mapping['Other']
 
-    def _check_mapping(self, oindex, objschema):
+    def _ensure_mapping_exists(self, oindex, objschema):
+        """Ensures a mapping exists in ES for 'index_name'"""
         index = oindex['index_name']
         res = self.es.indices.exists(index=index)
         if not res:
             schema = self.mapping_spec
-            if 'raw' in oindex and oindex['raw']:
+            if oindex.get('raw'):
                 schema = {'mappings': {'data': {'properties': objschema}}}
             elif objschema is not None:
                 schema['mappings']['data']['properties']['key'] = \
@@ -341,6 +339,8 @@ class IndexerUtils:
             self.es.indices.create(index=index, body=schema)
 
     def _new_raw_version_index(self, event, oindex):
+        """This handles indexing an object where the callout is expected to
+        return an entire ElasticSearch reccord for storage"""
         upa = event['upa']
         index = oindex['index_name']
         eid = self._get_id(upa)
@@ -350,18 +350,20 @@ class IndexerUtils:
             return
 
         params = {'upa': upa}
-        extra = {}
         (module, method) = oindex['index_method'].split('.')
         resp = self.mr.run(module, method, params)[0]
         self.mr.cleanup()
-        if 'data' not in resp or resp['data'] is None:
-            return
-        self._check_mapping(oindex, resp['schema'])
+        if resp.get('data') is None:
+            raise ValueError(f"{oindex['index_method']} did not return 'data' for {event}")
+        self._ensure_mapping_exists(oindex, resp['schema'])
         doc = resp['data']
-        res = self.es.create(index=index, doc_type='data',
-                             id=eid, body=doc, refresh=True)
+        self.es.create(index=index, doc_type='data', id=eid, body=doc, refresh=True)
 
     def _new_object_version_index(self, event, oindex):
+        """
+        This handles indexing a specific object version.
+        The callout should return a structure with a 'data'
+        """
         wsid = event['accgrp']
         objid = event['objid']
         vers = event['ver']
@@ -383,20 +385,22 @@ class IndexerUtils:
             extra = self.mr.run(module, method, params)[0]
             self.mr.cleanup()
             schema = extra['schema']
-        self._check_mapping(oindex, schema)
-        if 'data' in extra and extra['data'] is not None:
+        self._ensure_mapping_exists(oindex, schema)
+        if extra.get('data') is not None:
             doc['keys'] = extra['data']
             doc['ojson'] = json.dumps(doc['keys'])
+        else:
+            self.log.warning(f"{oindex['index_method']} did not return 'data' for {event}")
         self._update_es_access(index, wsid, objid, vers, upa)
-        res = self._put_es_data_record(index, upa, doc)
-        oid = '%d/%s' % (wsid, objid)
+        self._put_es_data_record(index, upa, doc)
+        oid = f'{wsid:d}/{objid}'
         info = self.ws.get_object_info3({'objects': [{'ref': oid}]})['infos'][0]
         if info[4] == vers:
             self._update_islast(index, wsid, objid, vers)
 
     def _new_object_version_multi_index(self, event, oindex):
         """
-        This handles indexing features for a specific version.
+        This handles indexing multiple sub-objects for a specific object version.
         The callout should return a structure with a 'features' that
         is a list of dictionary keys
         """
@@ -410,7 +414,7 @@ class IndexerUtils:
         eid = self._get_id(upa)
         res = self.es.get(index=index, doc_type='access', id=eid, ignore=404)
         if res.get('status') != 404 and res['found']:
-            self.log.info("%s already indexed in %s" % (eid, index))
+            self.log.info(f"{eid} already indexed in {index}")
             return
 
         doc = self._create_obj_rec(upa)
@@ -419,10 +423,7 @@ class IndexerUtils:
         extra = self.mr.run(module, method, params)[0]
         self.mr.cleanup()
         parent = extra['parent']
-        self._check_mapping(oindex, extra['schema'])
-        if 'features' in extra and extra['features'] is not None:
-            features = extra['features']
-        recs = []
+        self._ensure_mapping_exists(oindex, extra['schema'])
         doc['pjson'] = json.dumps(parent)
         pguid = self._get_id(upa)
         bdoc = []
@@ -448,7 +449,7 @@ class IndexerUtils:
             bulk(self.es, bdoc)
 
         self._update_es_access(index, wsid, objid, vers, upa)
-        oid = '%d/%s' % (wsid, objid)
+        oid = f'{wsid:d}/{objid}'
         info = self.ws.get_object_info3({'objects': [{'ref': oid}]})['infos'][0]
         if info[4] == vers:
             self._update_islast(index, wsid, objid, info[4])
@@ -458,25 +459,25 @@ class IndexerUtils:
         doc = {"query": {"bool": {"filter": [{"term": {"prefix": prefix}}]}},
                "script": {"source": "ctx._source.islast = (ctx._source.version == params.lastver)",
                           "params": {"lastver": int(vers)}}}
-        res = self.es.update_by_query(index, 'data', doc, refresh=True)
+        self.es.update_by_query(index, 'data', doc, refresh=True)
 
     def new_object_version(self, event):
         # For a NEW ALL VERSION we will just index the latest versions
         #
         if event['evtype'] == 'NEW_ALL_VERSIONS':
-            upa = "%s/%s" % (event['accgrp'], event['objid'])
+            upa = f"{event['accgrp']}/{event['objid']}"
             info = self.ws.get_object_info3({'objects': [{'ref': upa}]})['infos'][0]
             vers = info[4]
             event['ver'] = vers
             (event['objtype'], event['objtypever']) = info[2].split('-')
-            event['upa'] = '%s/%s' % (upa, vers)
+            event['upa'] = f'{upa}/{vers}'
 
         indexes = self._get_indexes(event['objtype'])
         for oindex in indexes:
             try:
-                if 'multi' in oindex and oindex['multi']:
+                if oindex.get('multi'):
                     self._new_object_version_multi_index(event, oindex)
-                elif 'raw' in oindex and oindex['raw']:
+                elif oindex.get('raw'):
                     self._new_raw_version_index(event, oindex)
                 else:
                     self._new_object_version_index(event, oindex)

@@ -8,6 +8,7 @@ from IndexRunner.IndexerUtils import IndexerUtils
 import logging
 
 
+# TODO: Should this just be a FileHandler in in the logger
 def _log_error(event, error):
     with open('error.log', 'a') as f:
         f.write(str(event)+'\n')
@@ -32,10 +33,10 @@ def kafka_watcher(config):
         'auto.offset.reset': 'earliest'
     })
     log.info("Starting consumer")
-    log.info("Server %s" % (server))
-    log.info("Group: %s" % (cgroup))
-    log.info("Topic: %s" % (topic))
-    log.info("Index Topic: %s" % (indexer_topic))
+    log.info(f"Server {server}")
+    log.info(f"Group: {cgroup}")
+    log.info(f"Topic: {topic}")
+    log.info(f"Index Topic: {indexer_topic}")
 
     c.subscribe([topic, indexer_topic])
 

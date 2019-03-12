@@ -20,10 +20,6 @@ RUN wget https://github.com/kbase/dockerize/raw/master/dockerize-linux-amd64-$DO
     tar -C /usr/local/bin -xvzf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && \
     rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
-# Clean up any apt installations
-RUN apt-get remove -y wget && \
-    apt-get autoremove -y && apt-get autoclean -y
-
 COPY . /app
 
 WORKDIR /app

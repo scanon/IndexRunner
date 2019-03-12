@@ -41,7 +41,7 @@ class IndexerUtils:
     def __init__(self, config):
         self.log = logging.getLogger('indexrunner')
         self.ws = WorkspaceAdminUtil(config)
-        self.es = Elasticsearch([config['elastic-host']])
+        self.elasticsearch = Elasticsearch([config['elastic-host']])
         self.esbase = config['elastic-base']
         mapfile = config.get('mapping-file')
         self.log.info("Mapping File: %s" % (mapfile))
@@ -51,7 +51,7 @@ class IndexerUtils:
             token = config['workspace-admin-token']
         else:
             token = os.environ.get('KB_AUTH_TOKEN')
-        self.mr = MethodRunner(config, token=token)
+        self.method_runner = MethodRunner(config, token=token)
         self.ep = EventProducer(config)
         # TODO: access and data specs are not used?
         with open('specs/mapping.yml') as f:
@@ -219,8 +219,8 @@ class IndexerUtils:
         error if it has
         """
         eid = self._get_id(upa)
-        res = self.es.create(index=index, parent=eid, doc_type='data',
-                             id=eid, routing=eid, body=doc, refresh=True)
+        res = self.elasticsearch.create(index=index, parent=eid, doc_type='data',
+                                        id=eid, routing=eid, body=doc, refresh=True)
         return res
 
     def _get_ws_info(self, wsid):
@@ -273,18 +273,18 @@ class IndexerUtils:
             }
         active_indexes = self._get_all_active_indexes()
         for index in active_indexes:
-            self.es.update_by_query(index=index, doc_type='access',
-                                    body=aq, ignore=[400, 404],
-                                    refresh=True)
-            self.es.update_by_query(index=index, doc_type='data',
-                                    body=dq, ignore=[400, 404],
-                                    refresh=True)
+            self.elasticsearch.update_by_query(index=index, doc_type='access',
+                                               body=aq, ignore=[400, 404],
+                                               refresh=True)
+            self.elasticsearch.update_by_query(index=index, doc_type='data',
+                                               body=dq, ignore=[400, 404],
+                                               refresh=True)
 
     def _get_all_active_indexes(self):
         indexes = (index['index_name']
                    for oindex in self.mapping
                    for index in self.mapping[oindex])
-        return self.es.indices.get(','.join(indexes), ignore_unavailable=True)
+        return self.elasticsearch.indices.get(','.join(indexes), ignore_unavailable=True)
 
     def delete(self, event):
         # Find each index
@@ -299,10 +299,10 @@ class IndexerUtils:
             }
         }
         for index in active_indexes:
-            self.es.delete_by_query(index=index, doc_type='data', routing=id,
-                                    body=q, ignore=[400, 404], refresh=True)
-            self.es.delete(index=index, doc_type='access', id=id, ignore=404,
-                           refresh=True)
+            self.elasticsearch.delete_by_query(index=index, doc_type='data', routing=id,
+                                               body=q, ignore=[400, 404], refresh=True)
+            self.elasticsearch.delete(index=index, doc_type='access', id=id, ignore=404,
+                                      refresh=True)
 
     def _update_es_access(self, index, wsid, objid, vers, upa):
         # Should pass a wsid but just in case...
@@ -312,15 +312,18 @@ class IndexerUtils:
         public = wsinfo['public']
         doc = self._access_rec(wsid, objid, vers, public=public)
         eid = self._get_id(upa)
-        res = self.es.index(index=index, doc_type='access', id=eid, body=doc,
-                            refresh=True)
+        res = self.elasticsearch.index(index=index, doc_type='access', id=eid, body=doc,
+                                       refresh=True)
         return res
 
     def _split_upa(self, upa):
         return [int(x) for x in upa.split('/')]
 
     def _get_indexes(self, otype):
-        generic = otype.split('.')[0] + ".*"
+        pieces = otype.split('.')
+        if not pieces:
+            raise RuntimeError(f"Invalid workspace type: {otype}")
+        generic = pieces[0] + ".*"
         if otype in self.mapping:
             return self.mapping[otype]
         elif generic in self.mapping:
@@ -330,7 +333,7 @@ class IndexerUtils:
     def _ensure_mapping_exists(self, oindex, objschema):
         """Ensures a mapping exists in ES for 'index_name'"""
         index = oindex['index_name']
-        res = self.es.indices.exists(index=index)
+        res = self.elasticsearch.indices.exists(index=index)
         if not res:
             schema = self.mapping_spec
             if oindex.get('raw'):
@@ -338,21 +341,29 @@ class IndexerUtils:
             elif objschema is not None:
                 schema['mappings']['data']['properties']['key'] = \
                     {'properties': objschema}
-            self.es.indices.create(index=index, body=schema)
+            self.elasticsearch.indices.create(index=index, body=schema)
 
     def _run_module(self, oindex, upa):
         params = {'upa': upa}
         (module, method) = oindex['index_method'].split('.')
-        resp = self.mr.run(module, method, params)[0]
-        self.mr.cleanup()
+        resp = self.method_runner.run(module, method, params)[0]
+        self.method_runner.cleanup()
         return resp
 
     def _update_islast(self, index, wsid, objid, vers):
-        prefix = "WS:%d/%s" % (wsid, objid)
-        doc = {"query": {"bool": {"filter": [{"term": {"prefix": prefix}}]}},
-               "script": {"source": "ctx._source.islast = (ctx._source.version == params.lastver)",
-                          "params": {"lastver": int(vers)}}}
-        self.es.update_by_query(index, 'data', doc, refresh=True)
+        prefix = f"WS:{wsid:d}/{objid}"
+        doc = {
+            "query": {
+                "bool": {
+                    "filter": [{"term": {"prefix": prefix}}]
+                }
+            },
+            "script": {
+                "source": "ctx._source.islast = (ctx._source.version == params.lastver)",
+                "params": {"lastver": int(vers)}
+            }
+        }
+        self.elasticsearch.update_by_query(index, 'data', doc, refresh=True)
 
     def _new_raw_version_index(self, event, oindex):
         """This handles indexing an object where the callout is expected to
@@ -360,7 +371,7 @@ class IndexerUtils:
         upa = event['upa']
         index = oindex['index_name']
         eid = self._get_id(upa)
-        res = self.es.get(index=index, doc_type='data', id=eid, ignore=404)
+        res = self.elasticsearch.get(index=index, doc_type='data', id=eid, ignore=404)
         if res.get('status') != 404 and res['found']:
             self.log.info("%s already indexed in %s" % (eid, index))
             return
@@ -370,7 +381,7 @@ class IndexerUtils:
             raise ValueError(f"{oindex['index_method']} did not return 'data' for {event}")
         self._ensure_mapping_exists(oindex, resp['schema'])
         doc = resp['data']
-        self.es.create(index=index, doc_type='data', id=eid, body=doc, refresh=True)
+        self.elasticsearch.create(index=index, doc_type='data', id=eid, body=doc, refresh=True)
 
     def _new_object_version_index(self, event, oindex):
         """
@@ -384,7 +395,7 @@ class IndexerUtils:
         index = oindex['index_name']
 
         eid = self._get_id(upa)
-        res = self.es.get(index=index, doc_type='access', id=eid, ignore=404)
+        res = self.elasticsearch.get(index=index, doc_type='access', id=eid, ignore=404)
         if res.get('status') != 404 and res['found']:
             self.log.info("%s already indexed in %s" % (eid, index))
             return
@@ -420,7 +431,7 @@ class IndexerUtils:
 
         # Check if any exists
         eid = self._get_id(upa)
-        res = self.es.get(index=index, doc_type='access', id=eid, ignore=404)
+        res = self.elasticsearch.get(index=index, doc_type='access', id=eid, ignore=404)
         if res.get('status') != 404 and res['found']:
             self.log.info(f"{eid} already indexed in {index}")
             return
@@ -446,12 +457,12 @@ class IndexerUtils:
             bdoc.append(rec)
             ct += 1
             if ct > BULK_MAX:
-                bulk(self.es, bdoc)
+                bulk(self.elasticsearch, bdoc)
                 bdoc = []
                 ct = 0
 
         if ct > 0:
-            bulk(self.es, bdoc)
+            bulk(self.elasticsearch, bdoc)
 
         self._update_es_access(index, wsid, objid, vers, upa)
         oid = f'{wsid:d}/{objid}'

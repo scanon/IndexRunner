@@ -158,7 +158,7 @@ class IndexerTester(unittest.TestCase):
         # iu.ws.get_objects2.return_value = {'data': [self.narobj]}
         iu.ws.get_objects2.return_value = self.narobj
         rv = {'docker_img_name': 'mock_indexer:latest'}
-        iu.mr.catalog.get_module_version.return_value = rv
+        iu.method_runner.catalog.get_module_version.return_value = rv
         event = self.new_version_event.copy()
         event['upa'] = '1/2/3'
         res = iu.new_object_version(event)
@@ -172,7 +172,7 @@ class IndexerTester(unittest.TestCase):
         iu.ws.get_objects2.return_value = self.genobj
         iu.ws.get_object_info3.return_value = self.geninfo
         rv = {'docker_img_name': 'mock_indexer:latest'}
-        iu.mr.catalog.get_module_version.return_value = rv
+        iu.method_runner.catalog.get_module_version.return_value = rv
         ev = self.new_version_event.copy()
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '3'
@@ -221,7 +221,7 @@ class IndexerTester(unittest.TestCase):
         iu.ws.get_objects2.return_value = self.genobj
         iu.ws.get_object_info3.return_value = self.geninfo
         rv = {'docker_img_name': 'mock_indexer:latest'}
-        iu.mr.catalog.get_module_version.return_value = rv
+        iu.method_runner.catalog.get_module_version.return_value = rv
         ev = self.new_version_event.copy()
         ev['objtype'] = None
         ev['objid'] = '3'
@@ -244,7 +244,7 @@ class IndexerTester(unittest.TestCase):
         # iu.ws.get_objects2.return_value = self.genobj
         iu.ws.get_object_info3.return_value = self.geninfo
         rv = {'docker_img_name': 'test/kb_genomeindexer:latest'}
-        iu.mr.catalog.get_module_version.return_value = rv
+        iu.method_runner.catalog.get_module_version.return_value = rv
         ev = self.new_version_event.copy()
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '2'
@@ -436,7 +436,7 @@ class IndexerTester(unittest.TestCase):
                 'timestamp': '1234'
             }
         }
-        iu.mr.run.return_value = [index]
+        iu.method_runner.run.return_value = [index]
         ev = self.new_version_event.copy()
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '3'
@@ -453,5 +453,5 @@ class IndexerTester(unittest.TestCase):
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '4'
         ev['ver'] = 2
-        iu.mr.run.return_value = [{}]
+        iu.method_runner.run.return_value = [{}]
         iu.process_event(ev)

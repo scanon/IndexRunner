@@ -22,12 +22,15 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-config_file = os.environ.get('KB_DEPLOYMENT_CONFIG', None)
+if not os.environ.get('KB_DEPLOYMENT_CONFIG'):
+    raise RuntimeError('KB_DEPLOYMENT_CONFIG environment variable should be set to a valid path.')
+
+config_file = os.environ['KB_DEPLOYMENT_CONFIG']
 config = ConfigParser()
 config.read(config_file)
 cfg = dict()
-for nameval in config.items('IndexRunner'):
-    cfg[nameval[0]] = nameval[1]
+for (name, val) in config.items('IndexRunner'):
+    cfg[name] = val
 
 kafka_thread = Thread(target=kafka_watcher, args=[cfg])
 kafka_thread.daemon = True

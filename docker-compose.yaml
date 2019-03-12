@@ -45,7 +45,10 @@ services:
           memory: 550M
 
   indexrunner:
-    image: kbase/indexrunner
+    build:
+      context: .
+      args:
+        DEVELOPMENT: 1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PWD}/test_local/scratch:/app/work
@@ -59,7 +62,10 @@ services:
       PYTHONUNBUFFERED: 1
 
   admin:
-    image: kbase/indexrunner
+    build:
+      context: .
+      args:
+        DEVELOPMENT: 1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PWD}/test_local/work:/app/work

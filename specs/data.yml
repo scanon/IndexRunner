@@ -1,0 +1,52 @@
+---
+_parent:
+  type: access
+properties:
+  accgrp:
+    type: integer
+  copier:
+    type: keyword
+  creator:
+    type: keyword
+  guid:
+    type: keyword
+  islast:
+    type: boolean
+  md5:
+    type: keyword
+  ojson:
+    doc_values: false
+    index: false
+    type: keyword
+  oname:
+    type: text
+  otype:
+    type: keyword
+  otypever:
+    type: integer
+  pjson:
+    doc_values: false
+    index: false
+    type: keyword
+  prefix:
+    type: keyword
+  prv_cmt:
+    type: keyword
+  prv_meth:
+    type: keyword
+  prv_mod:
+    type: keyword
+  prv_ver:
+    type: keyword
+  public:
+    type: boolean
+  shared:
+    type: boolean
+  stags:
+    type: keyword
+  str_cde:
+    type: keyword
+  timestamp:
+    type: date
+  version:
+    type: integer

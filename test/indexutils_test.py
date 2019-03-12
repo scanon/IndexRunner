@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
-import unittest
-from nose.plugins.attrib import attr
-
-import os  # noqa: F401
+import datetime
 import json  # noqa: F401
+import os  # noqa: F401
+import unittest
+from configparser import ConfigParser
+from os import environ
 from unittest.mock import patch, Mock
 
-from os import environ
-from configparser import ConfigParser  # py3
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
+from nose.plugins.attrib import attr
 
 from IndexRunner.IndexerUtils import IndexerUtils
-import datetime
 
 
 class IndexerTester(unittest.TestCase):
@@ -88,6 +87,20 @@ class IndexerTester(unittest.TestCase):
         for index in indices:
             self.es.indices.refresh(index=self._iname(index))
 
+    def get_indexes_test(self):
+        iu = IndexerUtils(self.cfg)
+        self.assertEqual(iu._get_indexes("KBaseNarrative.Narrative"),
+                         [{'index_method': 'NarrativeIndexer.index',
+                           'index_name': 'ciraw.narrative'}]
+                         )
+        self.assertEqual(iu._get_indexes("Foo.Bar"),
+                         [{'comment': 'Everything without a specific indexer',
+                           'index_method': 'default_indexer',
+                           'index_name': 'ciraw.objects'}])
+        self.assertEqual(iu._get_indexes("KBaseMatrices.ExpressionMatrix"),
+                         [{'index_method': 'KBaseMatrices.index',
+                           'index_name': 'ciraw.KBaseMatrices'}])
+
     @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
     def skip_temp_test(self, wsa):
         iu = IndexerUtils(self.cfg)
@@ -145,7 +158,7 @@ class IndexerTester(unittest.TestCase):
         # iu.ws.get_objects2.return_value = {'data': [self.narobj]}
         iu.ws.get_objects2.return_value = self.narobj
         rv = {'docker_img_name': 'mock_indexer:latest'}
-        iu.mr.catalog.get_module_version.return_value = rv
+        iu.method_runner.catalog.get_module_version.return_value = rv
         event = self.new_version_event.copy()
         event['upa'] = '1/2/3'
         res = iu.new_object_version(event)
@@ -159,7 +172,7 @@ class IndexerTester(unittest.TestCase):
         iu.ws.get_objects2.return_value = self.genobj
         iu.ws.get_object_info3.return_value = self.geninfo
         rv = {'docker_img_name': 'mock_indexer:latest'}
-        iu.mr.catalog.get_module_version.return_value = rv
+        iu.method_runner.catalog.get_module_version.return_value = rv
         ev = self.new_version_event.copy()
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '3'
@@ -208,7 +221,7 @@ class IndexerTester(unittest.TestCase):
         iu.ws.get_objects2.return_value = self.genobj
         iu.ws.get_object_info3.return_value = self.geninfo
         rv = {'docker_img_name': 'mock_indexer:latest'}
-        iu.mr.catalog.get_module_version.return_value = rv
+        iu.method_runner.catalog.get_module_version.return_value = rv
         ev = self.new_version_event.copy()
         ev['objtype'] = None
         ev['objid'] = '3'
@@ -231,7 +244,7 @@ class IndexerTester(unittest.TestCase):
         # iu.ws.get_objects2.return_value = self.genobj
         iu.ws.get_object_info3.return_value = self.geninfo
         rv = {'docker_img_name': 'test/kb_genomeindexer:latest'}
-        iu.mr.catalog.get_module_version.return_value = rv
+        iu.method_runner.catalog.get_module_version.return_value = rv
         ev = self.new_version_event.copy()
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '2'
@@ -423,7 +436,7 @@ class IndexerTester(unittest.TestCase):
                 'timestamp': '1234'
             }
         }
-        iu.mr.run.return_value = [index]
+        iu.method_runner.run.return_value = [index]
         ev = self.new_version_event.copy()
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '3'
@@ -440,5 +453,5 @@ class IndexerTester(unittest.TestCase):
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '4'
         ev['ver'] = 2
-        iu.mr.run.return_value = [{}]
+        iu.method_runner.run.return_value = [{}]
         iu.process_event(ev)

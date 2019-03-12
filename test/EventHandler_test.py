@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import json
+import os
 import unittest
 from unittest.mock import patch
-import json
-from IndexRunner.EventUtils import kafka_watcher
+
 from confluent_kafka import KafkaError
-import os
+
+from IndexRunner.EventUtils import kafka_watcher
 
 
 class myerror():
@@ -54,6 +56,9 @@ class MethodRunnerTest(unittest.TestCase):
         cls.ev = json.dumps(ev).encode()
         ev['strcde'] = 'BOGUS'
         cls.badev = json.dumps(ev).encode()
+        cls.mock_log = patch('IndexRunner.EventUtils.logging', autospec=True).start()
+        cls.mock_in = patch('IndexRunner.EventUtils.IndexerUtils', autospec=True).start()
+        cls.mock_con = patch('IndexRunner.EventUtils.Consumer', autospec=True).start()
 
     def _remove_error_file(self):
         if os.path.exists('error.log'):
@@ -65,76 +70,49 @@ class MethodRunnerTest(unittest.TestCase):
             error = f.readline()
             return data, error
 
-    @patch('IndexRunner.EventUtils.Consumer', autospec=True)
-    @patch('IndexRunner.EventUtils.IndexerUtils', autospec=True)
-    @patch('IndexRunner.EventUtils.logging', autospec=True)
-    def test_watcher(self, mock_log, mock_in, mock_con):
-        # Test an empty message
+    def _call_watcher(self, msg, called=False, side_effect=None, expected_error=None):
         self._remove_error_file()
-        mock_con.return_value.poll.return_value = None
-        kafka_watcher({'run_one': 1})
-        mock_in.return_value.process_event.assert_not_called()
-        self.assertFalse(os.path.exists('error.log'))
+        self.mock_con.return_value.poll.return_value = msg
+        if side_effect:
+            self.mock_in.return_value.process_event.side_effect = side_effect
 
-        # Test the good case
-        msg = mymessage(self.ev)
-        mock_con.return_value.poll.return_value = msg
+        self.mock_in.return_value.process_event.reset_mock()
         kafka_watcher({'run_one': 1})
-        mock_in.return_value.process_event.assert_called_once()
-        self.assertFalse(os.path.exists('error.log'))
+        if called:
+            self.mock_in.return_value.process_event.assert_called_once()
+        else:
+            self.mock_in.return_value.process_event.assert_not_called()
 
-        # Bad string code
-        self._remove_error_file()
-        msg = mymessage(self.badev)
-        mock_con.return_value.poll.return_value = msg
-        mock_in.return_value.process_event.reset_mock()
-        kafka_watcher({'run_one': 1})
-        mock_in.return_value.process_event.assert_not_called()
-        self.assertTrue(os.path.exists('error.log'))
-        data, err = self._parse_error()
-        self.assertIn('Bad strcde', err)
+        if expected_error is None:
+            self.assertFalse(os.path.exists('error.log'))
+        else:
+            self.assertTrue(os.path.exists('error.log'))
+            data, err = self._parse_error()
+            self.assertIn(expected_error, err)
 
-        # Test bad json
-        self._remove_error_file()
-        msg = mymessage('blah'.encode())
-        mock_con.return_value.poll.return_value = msg
-        mock_in.return_value.process_event.reset_mock()
-        kafka_watcher({'run_one': 1})
-        mock_in.return_value.process_event.assert_not_called()
-        self.assertTrue(os.path.exists('error.log'))
-        data, err = self._parse_error()
-        self.assertIn('Expecting value', err)
+    def test_empty_message(self):
+        self._call_watcher(None, called=False)
 
-        # Test index exception
-        self._remove_error_file()
-        msg = mymessage(self.ev)
-        mock_con.return_value.poll.return_value = msg
-        mock_in.return_value.process_event.side_effect = Exception('bogus')
-        mock_in.return_value.process_event.reset_mock()
-        kafka_watcher({'run_one': 1})
-        mock_in.return_value.process_event.assert_called_once()
-        self.assertTrue(os.path.exists('error.log'))
-        data, err = self._parse_error()
-        self.assertIn('bogus', err)
+    def test_good_case(self):
+        self._call_watcher(mymessage(self.ev), called=True)
 
-        # Kafka Error
-        self._remove_error_file()
+    def test_bad_string_code(self):
+        self._call_watcher(mymessage(self.badev), called=False,
+                           expected_error='Bad strcde')
+
+    def test_bad_json(self):
+        self._call_watcher(mymessage('blah'.encode()), called=False,
+                           expected_error='Expecting value')
+
+    def test_index_exception(self):
+        self._call_watcher(mymessage(self.ev), side_effect=Exception('bogus'),
+                           called=True, expected_error='bogus')
+
+    def test_kafka_error(self):
         msg = mymessage(self.ev, 1, 'bad kafka, bad')
-        mock_con.return_value.poll.return_value = msg
-        mock_in.return_value.process_event.side_effect = Exception('bogus')
-        mock_in.return_value.process_event.reset_mock()
-        kafka_watcher({'run_one': 1})
-        mock_in.return_value.process_event.assert_not_called()
-        self.assertTrue(os.path.exists('error.log'))
-        data, err = self._parse_error()
-        self.assertIn('bad kafka', err)
+        self._call_watcher(msg, side_effect=Exception('bogus'),
+                           called=False, expected_error='bad kafka')
 
-        # Kafka Partition Error
-        self._remove_error_file()
+    def test_kafka_partition_error(self):
         msg = mymessage(self.ev, KafkaError._PARTITION_EOF, 'ignore this')
-        mock_con.return_value.poll.return_value = msg
-        mock_in.return_value.process_event.side_effect = Exception('bogus')
-        mock_in.return_value.process_event.reset_mock()
-        kafka_watcher({'run_one': 1})
-        mock_in.return_value.process_event.assert_not_called()
-        self.assertFalse(os.path.exists('error.log'))
+        self._call_watcher(msg, side_effect=Exception('bogus'), called=False)

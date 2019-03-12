@@ -10,7 +10,7 @@ import logging
 class EventProducer():
 
     def __init__(self, config):
-        self.topic = config.get('kafka-index-topic', 'wsevents')
+        self.topic = config.get('kafka-index-topic', 'idxevents')
         server = config.get('kafka-server', 'kafka')
         config = config
         self.log = logging.getLogger('indexrunner')

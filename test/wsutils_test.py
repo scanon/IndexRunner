@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 import unittest
-import os  # noqa: F401
-import json  # noqa: F401
-from IndexRunner.WSAdminUtils import WorkspaceAdminUtil
+from configparser import ConfigParser
+from os import environ
+
 from nose.plugins.attrib import attr
 
-from os import environ
-from configparser import ConfigParser  # py3
-
-from pprint import pprint  # noqa: F401
-
+from IndexRunner.WSAdminUtils import WorkspaceAdminUtil
 from kbase.Workspace.WorkspaceClient import Workspace as workspaceService
 
 

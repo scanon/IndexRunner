@@ -5,6 +5,7 @@ import re
 import sys
 import traceback
 from time import time
+import datetime
 
 import yaml
 from elasticsearch import Elasticsearch
@@ -68,7 +69,9 @@ class IndexerUtils:
         return mapping
 
     def process_event(self, evt):
-
+        """
+        Process a single workspace or indexer event
+        """
         etype = evt['evtype']
         ws = evt['wsid']
         if evt['ver']:
@@ -108,18 +111,21 @@ class IndexerUtils:
         req = {'objects': [{'ref': upa}], 'no_data': 1}
         obj = self.ws.get_objects2(req)['data'][0]
         info = obj['info']
-
+        (otype, over) = info[2].split('-')
+        fmt = "%Y-%m-%dT%H:%M:%S%z"
+        ts = int(datetime.datetime.strptime(info[3], fmt).timestamp()*1000)
         wsinfo = self._get_ws_info(wsid)
         # Don't index temporary narratives
         if wsinfo['temp']:
             return None
 
         prov = self._get_prov(obj)
+        # TODO stags, copier, prv_cmt, time
 
         rec = {
           "guid": f"WS:{upa}",
           "otype": None,
-          "otypever": 1,
+          "otypever": 999,
           "stags": [],
           "oname": info[1],
           "creator": info[5],
@@ -129,7 +135,7 @@ class IndexerUtils:
           "prv_ver": prov['prv_ver'],
           "prv_cmt": None,
           "md5": info[8],
-          "timestamp": int(time()),
+          "timestamp": ts,
           "prefix": "WS:%d/%d" % (wsid, objid),
           "str_cde": "WS",
           "accgrp": wsid,
@@ -405,9 +411,15 @@ class IndexerUtils:
         if 'default_indexer' not in oindex['index_method']:
             extra = self._run_module(oindex, upa)
         self._ensure_mapping_exists(oindex, extra.get('schema'))
+
         if extra.get('data') is not None:
-            doc['keys'] = extra['data']
-            doc['ojson'] = json.dumps(doc['keys'])
+            doc['key'] = extra['data']
+            if 'objdata' in extra:
+                od = doc['key'].pop('objdata')
+                doc['ojson'] = json.dumps(od)
+            else:
+                doc['ojson'] = json.dumps(doc['key'])
+
         else:
             self.log.warning(f"{oindex['index_method']} did not return 'data' for {event}")
         self._update_es_access(index, wsid, objid, vers, upa)
@@ -435,23 +447,40 @@ class IndexerUtils:
         if res.get('status') != 404 and res['found']:
             self.log.info(f"{eid} already indexed in {index}")
             return
+        wsinfo = self._get_ws_info(wsid)
+        if wsinfo['temp']:
+            return None
+        public = wsinfo['public']
+        adoc = self._access_rec(wsid, objid, vers, public=public)
 
-        doc = self._create_obj_rec(upa)
+        pdoc = self._create_obj_rec(upa)
         extra = self._run_module(oindex, upa)
         parent = extra['parent']
         self._ensure_mapping_exists(oindex, extra['schema'])
-        doc['pjson'] = json.dumps(parent)
+        pdoc['pjson'] = json.dumps(parent)
         pguid = self._get_id(upa)
+        recs = []
         bdoc = []
         ct = 0
         for row in extra['documents']:
-            doc['keys'] = {**parent, **row}
+            doc = pdoc.copy()
+            doc['key'] = {**parent, **row}
+
             guid = row.pop('guid')
             if not guid.startswith('WS:'):
                 guid = "WS:" + guid
-            guid = guid.replace('/', ':')
+            # Tear apart the name so we get just the
+            # last portion
+            ele = guid.replace('/', ':').split(':')
+            # build the feature ID from everything past the UPA
+            fid = '/'.join(ele[4:])
+            guid = 'WS:%s:feature/%s' % (upa, fid)
             doc['guid'] = guid
-            doc['ojson'] = json.dumps(doc['keys'])
+            if 'objdata' in doc['key']:
+                od = doc['key'].pop('objdata')
+                doc['ojson'] = json.dumps(od)
+            else:
+                doc['ojson'] = json.dumps(doc['key'])
             rec = {'_id': guid, '_source': doc, '_index': index,
                    '_parent': pguid, '_type': 'data'}
             bdoc.append(rec)

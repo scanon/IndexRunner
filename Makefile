@@ -21,6 +21,9 @@ all: compile build build-startup-script build-executable-script build-test-scrip
 docker:
 	docker build -t kbase/indexrunner .
 
+mock:
+	docker build -t mock_indexer ./test/mock_indexer
+
 test:
 	nosetests -s -x -v --with-coverage --cover-erase --cover-package=IndexRunner --cover-html --cover-html-dir=./test_coverage --nocapture  --nologcapture .
 

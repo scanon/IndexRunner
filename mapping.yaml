@@ -27,3 +27,12 @@ types:
          -
              index_method: KBaseMatrices.index
              index_name: KBaseMatrices
+
+    KBaseGenomeAnnotations.Assembly:
+         -
+             index_method: MiscIndexer.assembly_index
+             index_name: assembly
+         -
+             index_method: MiscIndexer.assemblycontig_index
+             index_name: assemblycontig
+             multi: True

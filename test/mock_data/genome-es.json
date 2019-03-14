@@ -61,7 +61,7 @@
           "shared" : false,
           "ojson" : "{\"assembly_guid\": [], \"cds_count\": [], \"contig_count\": [7], \"domain\": [\"Bacteria\"], \"feature_count\": [4347], \"id\": [\"Rhodobacter_sphaeroides_2.4.1\"], \"mrna_count\": [], \"scientific_name\": [\"Rhodobacter sphaeroides 2.4.1\"], \"scientific_name_keyword\": [\"Rhodobacter sphaeroides 2.4.1\"], \"source\": [\"NCBI\"], \"source_id\": [\"NCBI\"], \"taxonomy\": [\"Bacteria; Proteobacteria; Alphaproteobacteria; Rhodobacterales; Rhodobacteraceae; Rhodobacter; Rhodobacter sphaeroides 2.4.1\"]}",
           "pjson" : null,
-          "keys" : {
+          "key" : {
             "assembly_guid" : [ ],
             "cds_count" : [ ],
             "contig_count" : [
@@ -146,7 +146,7 @@
             "shared" : false,
             "ojson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"], \"aliases\": [\"protein_id\", \"NP_417032.1\", \"gene_synonym\", \"ECK2534; JW2521; phdR; yfhT\", \"gene\", \"hcaR\", \"locus_tag\", \"b2537\"], \"contig_guid\": [\"WS:29934/1/1:contig/NC_000913.3\"], \"contig_id\": [\"NC_000913.3\"], \"feature_type\": [\"gene\"], \"functions\": [\"regulator\", \"product:hca operon transcriptional regulator\", \"Degradation of small molecules: Carbon compounds\"], \"guid\": \"29934/2/1:Feature/b2537\", \"id\": [\"b2537\"], \"start\": [2668006], \"stop\": [2668896], \"strand\": [\"-\"]}",
             "pjson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"]}",
-            "keys" : {
+            "key" : {
               "genome_domain" : [
                 "Bacteria"
               ],
@@ -228,7 +228,7 @@
             "shared" : false,
             "ojson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"], \"aliases\": [\"protein_id\", \"NP_417032.1\", \"gene_synonym\", \"ECK2534; JW2521; phdR; yfhT\", \"gene\", \"hcaR\", \"locus_tag\", \"b2537\"], \"contig_guid\": [\"WS:29934/1/1:contig/NC_000913.3\"], \"contig_id\": [\"NC_000913.3\"], \"feature_type\": [\"gene\"], \"functions\": [\"regulator\", \"product:hca operon transcriptional regulator\", \"Degradation of small molecules: Carbon compounds\"], \"guid\": \"29934/2/1:Feature/b2537\", \"id\": [\"b2537\"], \"start\": [2668006], \"stop\": [2668896], \"strand\": [\"-\"]}",
             "pjson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"]}",
-            "keys" : {
+            "key" : {
               "genome_domain" : [
                 "Bacteria"
               ],
@@ -310,7 +310,7 @@
             "shared" : false,
             "ojson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"], \"aliases\": [\"protein_id\", \"NP_417032.1\", \"gene_synonym\", \"ECK2534; JW2521; phdR; yfhT\", \"gene\", \"hcaR\", \"locus_tag\", \"b2537\"], \"contig_guid\": [\"WS:29934/1/1:contig/NC_000913.3\"], \"contig_id\": [\"NC_000913.3\"], \"feature_type\": [\"gene\"], \"functions\": [\"regulator\", \"product:hca operon transcriptional regulator\", \"Degradation of small molecules: Carbon compounds\"], \"guid\": \"29934/2/1:Feature/b2537\", \"id\": [\"b2537\"], \"start\": [2668006], \"stop\": [2668896], \"strand\": [\"-\"]}",
             "pjson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"]}",
-            "keys" : {
+            "key" : {
               "genome_domain" : [
                 "Bacteria"
               ],
@@ -392,7 +392,7 @@
             "shared" : false,
             "ojson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"], \"aliases\": [\"protein_id\", \"NP_417032.1\", \"gene_synonym\", \"ECK2534; JW2521; phdR; yfhT\", \"gene\", \"hcaR\", \"locus_tag\", \"b2537\"], \"contig_guid\": [\"WS:29934/1/1:contig/NC_000913.3\"], \"contig_id\": [\"NC_000913.3\"], \"feature_type\": [\"gene\"], \"functions\": [\"regulator\", \"product:hca operon transcriptional regulator\", \"Degradation of small molecules: Carbon compounds\"], \"guid\": \"29934/2/1:Feature/b2537\", \"id\": [\"b2537\"], \"start\": [2668006], \"stop\": [2668896], \"strand\": [\"-\"]}",
             "pjson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"]}",
-            "keys" : {
+            "key" : {
               "genome_domain" : [
                 "Bacteria"
               ],
@@ -474,7 +474,7 @@
             "shared" : false,
             "ojson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"], \"aliases\": [\"protein_id\", \"NP_417032.1\", \"gene_synonym\", \"ECK2534; JW2521; phdR; yfhT\", \"gene\", \"hcaR\", \"locus_tag\", \"b2537\"], \"contig_guid\": [\"WS:29934/1/1:contig/NC_000913.3\"], \"contig_id\": [\"NC_000913.3\"], \"feature_type\": [\"gene\"], \"functions\": [\"regulator\", \"product:hca operon transcriptional regulator\", \"Degradation of small molecules: Carbon compounds\"], \"guid\": \"29934/2/1:Feature/b2537\", \"id\": [\"b2537\"], \"start\": [2668006], \"stop\": [2668896], \"strand\": [\"-\"]}",
             "pjson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"]}",
-            "keys" : {
+            "key" : {
               "genome_domain" : [
                 "Bacteria"
               ],
@@ -556,7 +556,7 @@
             "shared" : false,
             "ojson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"], \"aliases\": [\"protein_id\", \"NP_417032.1\", \"gene_synonym\", \"ECK2534; JW2521; phdR; yfhT\", \"gene\", \"hcaR\", \"locus_tag\", \"b2537\"], \"contig_guid\": [\"WS:29934/1/1:contig/NC_000913.3\"], \"contig_id\": [\"NC_000913.3\"], \"feature_type\": [\"gene\"], \"functions\": [\"regulator\", \"product:hca operon transcriptional regulator\", \"Degradation of small molecules: Carbon compounds\"], \"guid\": \"29934/2/1:Feature/b2537\", \"id\": [\"b2537\"], \"start\": [2668006], \"stop\": [2668896], \"strand\": [\"-\"]}",
             "pjson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"]}",
-            "keys" : {
+            "key" : {
               "genome_domain" : [
                 "Bacteria"
               ],
@@ -638,7 +638,7 @@
             "shared" : false,
             "ojson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"], \"aliases\": [\"protein_id\", \"NP_417032.1\", \"gene_synonym\", \"ECK2534; JW2521; phdR; yfhT\", \"gene\", \"hcaR\", \"locus_tag\", \"b2537\"], \"contig_guid\": [\"WS:29934/1/1:contig/NC_000913.3\"], \"contig_id\": [\"NC_000913.3\"], \"feature_type\": [\"gene\"], \"functions\": [\"regulator\", \"product:hca operon transcriptional regulator\", \"Degradation of small molecules: Carbon compounds\"], \"guid\": \"29934/2/1:Feature/b2537\", \"id\": [\"b2537\"], \"start\": [2668006], \"stop\": [2668896], \"strand\": [\"-\"]}",
             "pjson" : "{\"genome_domain\": [\"Bacteria\"], \"genome_scientific_name\": [\"Escherichia coli str. K-12 substr. MG1655\"], \"genome_taxonomy\": [\"cellular organisms; Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacterales; Enterobacteriaceae; Escherichia\"]}",
-            "keys" : {
+            "key" : {
               "genome_domain" : [
                 "Bacteria"
               ],

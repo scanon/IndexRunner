@@ -234,28 +234,28 @@ class IndexerTester(unittest.TestCase):
         self.assertIsNotNone(res)
         self.assertIn('ojson', res['_source'])
         self.assertTrue(res['_source']['islast'])
+        self.assertNotIn('objdata', res['_source'])
 
     @attr('online')
-    @patch('IndexRunner.IndexerUtils.WorkspaceAdminUtil', autospec=True)
     @patch('IndexRunner.MethodRunner.Catalog', autospec=True)
-    def index_request_genome_test(self, mock_wsa, mock_cat):
+    def index_request_genome_test(self, mock_cat):
         iu = IndexerUtils(self.cfg)
-        iu.ws.get_workspace_info.return_value = self.wsinfo
-        # iu.ws.get_objects2.return_value = self.genobj
-        iu.ws.get_object_info3.return_value = self.geninfo
         rv = {'docker_img_name': 'test/kb_genomeindexer:latest'}
         iu.method_runner.catalog.get_module_version.return_value = rv
         ev = self.new_version_event.copy()
+        wsid = 15792
+        objid = 2
+        ver = 12
         ev['objtype'] = 'KBaseGenomes.Genome'
-        ev['objid'] = '2'
-        ev['wsid'] = 15792
-        ev['ver'] = 1
-        id = 'WS:15792:2:1'
+        ev['objid'] = str(objid)
+        ev['wsid'] = wsid
+        ev['ver'] = ver
+        id = f'WS:{wsid:d}:{objid:d}:{ver:d}'
         self.reset()
         iu.process_event(ev)
         res = self.es.get(index=self._iname('genome'), routing=id, doc_type='data', id=id)
         self.assertIsNotNone(res)
-        fid = 'WS:15792:2:1:L876_RS0116375'
+        fid = f'WS:{wsid:d}/{objid:d}/{ver:d}:feature/L876_RS0116375'
         res = self.es.get(index=self._iname('genomefeature'), routing=id,
                           doc_type='data', id=fid)
         self.assertIsNotNone(res)
@@ -455,3 +455,24 @@ class IndexerTester(unittest.TestCase):
         ev['ver'] = 2
         iu.method_runner.run.return_value = [{}]
         iu.process_event(ev)
+        # This will throw an error
+
+    @attr('online')
+    def index_request_misc_test(self):
+        iu = IndexerUtils(self.cfg)
+        ev = self.new_version_event.copy()
+        ev['objtype'] = 'KBaseGenomeAnnotations.Assembly'
+        ev['objid'] = '31'
+        ev['accgrp'] = 7998
+        ev['ver'] = 2
+        id = 'WS:7998:31:2'
+        self.reset()
+        iu.process_event(ev)
+        res = self.es.get(index=self._iname('assembly'), routing=id, doc_type='data', id=id)
+        self.assertIsNotNone(res)
+        # fid = 'WS:15792:2:1:L876_RS0116375'
+        # res = self.es.get(index=self._iname('assemblycontig'), routing=id,
+        #                   doc_type='data', id=fid)
+        # self.assertIsNotNone(res)
+        # self.assertIn('ojson', res['_source'])
+        # self.assertTrue(res['_source']['islast'])

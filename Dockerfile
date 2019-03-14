@@ -1,16 +1,26 @@
-FROM python:3
+FROM python:3.7-slim
 
 MAINTAINER KBase Developer
 
-ADD requirements.txt /tmp/
-RUN pip install -r /tmp/requirements.txt
+# Install pip requirements
+ARG DEVELOPMENT
+COPY requirements.txt dev-requirements.txt /tmp/
 
-RUN wget https://github.com/kbase/dockerize/raw/master/dockerize-linux-amd64-v0.6.1.tar.gz && \
-    tar xvzf dockerize-linux-amd64-v0.6.1.tar.gz && \
-    mv dockerize /usr/bin && \
-    rm *.tar.gz
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    if [ "$DEVELOPMENT" ]; then pip install --no-cache-dir -r /tmp/dev-requirements.txt; fi && \
+    rm /tmp/*requirements.txt
 
-ADD . /app
+RUN apt-get update && \
+    apt-get install -y wget
+
+# Install dockerize
+ENV DOCKERIZE_VERSION v0.6.1
+RUN wget https://github.com/kbase/dockerize/raw/master/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && \
+    tar -C /usr/local/bin -xvzf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && \
+    rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+
+COPY . /app
 
 WORKDIR /app
 

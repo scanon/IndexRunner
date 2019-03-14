@@ -40,7 +40,7 @@ class IndexerTester(unittest.TestCase):
         cls.geninfo = cls.read_mock('genome_object_info.json')
         cls.new_version_event = {
             'strcde': 'WS',
-            'accgrp': 1,
+            'wsid': 1,
             'objid': '2',
             'ver': 3,
             'newname': None,
@@ -248,7 +248,7 @@ class IndexerTester(unittest.TestCase):
         ev = self.new_version_event.copy()
         ev['objtype'] = 'KBaseGenomes.Genome'
         ev['objid'] = '2'
-        ev['accgrp'] = 15792
+        ev['wsid'] = 15792
         ev['ver'] = 1
         id = 'WS:15792:2:1'
         self.reset()
@@ -298,7 +298,7 @@ class IndexerTester(unittest.TestCase):
         self._init_es_genome()
         ev = {
             "strcde": "WS",
-            "accgrp": 1,
+            "wsid": 1,
             "objid": None,
             "ver": None,
             "newname": None,
@@ -378,7 +378,7 @@ class IndexerTester(unittest.TestCase):
         # COPY_ACCESS_GROUP;
         ev = {
             "strcde": "WS",
-            "accgrp": 1,
+            "wsid": 1,
             "objid": None,
             "ver": None,
             "newname": None,
@@ -398,7 +398,7 @@ class IndexerTester(unittest.TestCase):
     def reindex_event_test(self, mock_ep, mock_ws):
         ev = {
             "strcde": "WS",
-            "accgrp": 1,
+            "wsid": 1,
             "objid": None,
             "ver": None,
             "newname": None,

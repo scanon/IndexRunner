@@ -43,7 +43,7 @@ class MethodRunnerTest(unittest.TestCase):
     def setUpClass(cls):
         ev = {
             'strcde': 'WS',
-            'accgrp': 1,
+            'wsid': 1,
             'objid': '2',
             'ver': 3,
             'newname': None,
